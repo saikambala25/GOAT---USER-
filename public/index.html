@@ -885,7 +885,7 @@
     </div>
     
     <script>
-        const API_URL = 'https://goat-user.vercel.app/api';
+        const API_URL = 'https://goat-user-latest.vercel.app/api';
         let livestock = [];
         let orders = [];
         let cart = []; 
@@ -901,32 +901,52 @@
         let autoRefreshInterval = null; 
         let proofUploaded = false; 
         let isSavingState = false;
+let _saveDebounceTimer = null;
+
+// Debounced save — batches rapid changes into one DB write (300ms window)
+function saveUserStateDebounced() {
+    if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
+    _saveDebounceTimer = setTimeout(() => saveUserState(), 300);
+}
 let currentOrderFilter = 'all';
 let isConfirmingPayment = false;
 
-// --- Session auto-logout (30 minutes) ---
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+// ── SESSION MANAGEMENT ─────────────────────────────────────────────────────
+// 5-hour inactivity timeout. Activity updates a timestamp in localStorage.
+// On refresh: sessionStorage flag + inactivity check decide whether to restore.
+// On fresh URL visit (new tab, direct link): always show login page.
+
+const SESSION_TIMEOUT_MS = 5 * 60 * 60 * 1000; // 5 hours
+const ACTIVITY_KEY       = 'lm_last_active';
+const SESSION_FLAG       = 'lm_tab_session';    // sessionStorage — dies with tab
 let sessionTimer = null;
 
-function resetSessionTimer() {
-  if (!currentUser) return;
-  if (sessionTimer) clearTimeout(sessionTimer);
-  sessionTimer = setTimeout(() => {
-    showToast('Session expired. Please login again.', 'info');
-    handleLogout();
-  }, SESSION_TIMEOUT_MS);
+function markActivity() {
+    if (!currentUser) return;
+    localStorage.setItem(ACTIVITY_KEY, Date.now().toString());
+    sessionStorage.setItem(SESSION_FLAG, '1');
 }
 
-['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach((evt) => {
-  document.addEventListener(
-    evt,
-    () => {
-      if (currentUser) resetSessionTimer();
-    },
-    { passive: true }
-  );
+function resetSessionTimer() {
+    if (!currentUser) return;
+    if (sessionTimer) clearTimeout(sessionTimer);
+    markActivity();
+    sessionTimer = setTimeout(() => {
+        showToast('You have been logged out due to 5 hours of inactivity.', 'info');
+        handleLogout();
+    }, SESSION_TIMEOUT_MS);
+}
+
+function isSessionStillValid() {
+    // Must have both: a stored user AND recent activity within 5 hours
+    const lastActive = parseInt(localStorage.getItem(ACTIVITY_KEY) || '0', 10);
+    return lastActive && (Date.now() - lastActive < SESSION_TIMEOUT_MS);
+}
+
+['click', 'mousemove', 'keydown', 'scroll', 'touchstart', 'touchmove'].forEach((evt) => {
+    document.addEventListener(evt, () => { if (currentUser) markActivity(); }, { passive: true });
 });
-; // Fix: Flag to prevent race conditions during sync
+// Fix: Flag to prevent race conditions during sync
         
         // --- Language & Notifications ---
         let currentLang = localStorage.getItem('lm_lang') || 'en';
@@ -1181,7 +1201,8 @@ function resetSessionTimer() {
                     notifications = data.notifications || []; 
                     if (addresses.length > 0 && !currentAddress) currentAddress = addresses[0];
                 } else {
-                    cart = []; wishlist = []; addresses = []; notifications = []; currentAddress = null;
+                    cart = []; wishlist = []; notifications = []; currentAddress = null;
+                    // Keep existing addresses — don't wipe them on a failed state load
                 }
             } catch (e) { console.error('Error loading user state:', e); }
         }
@@ -1289,6 +1310,8 @@ function resetSessionTimer() {
                 
                 currentUser = data.user;
                 localStorage.setItem('lm_user', JSON.stringify(currentUser));
+                sessionStorage.setItem(SESSION_FLAG, '1');
+                markActivity();
                 await loadUserState();
                 updateProfileUI();
                 updateCartBadge();
@@ -1322,6 +1345,8 @@ function resetSessionTimer() {
                 
                 currentUser = data.user;
                 localStorage.setItem('lm_user', JSON.stringify(currentUser));
+                sessionStorage.setItem(SESSION_FLAG, '1');
+                markActivity();
                 await loadUserState();
                 updateProfileUI();
                 updateCartBadge();
@@ -1339,6 +1364,8 @@ function resetSessionTimer() {
   if (sessionTimer) clearTimeout(sessionTimer);
   sessionTimer = null;
   localStorage.removeItem('lm_user');
+  localStorage.removeItem(ACTIVITY_KEY);
+  sessionStorage.removeItem(SESSION_FLAG);
 
             try { await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' }); } catch (err) {}
             currentUser = null; cart = []; wishlist = []; addresses = []; currentAddress = null; notifications = [];
@@ -1364,6 +1391,8 @@ function resetSessionTimer() {
                     const data = await res.json();
                     currentUser = data.user;
                     localStorage.setItem('lm_user', JSON.stringify(currentUser));
+                    sessionStorage.setItem(SESSION_FLAG, '1');
+                    markActivity();
                     if (!appAlreadyRunning) {
                         // Fresh visit with valid server session — boot the app
                         await loadUserState();
@@ -2061,7 +2090,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 };
                 cart.push(cartItem);
                 updateCartBadge();
-                saveUserState();
+                saveUserStateDebounced();
                 showToast(`${item.name} added to cart`, 'success');
                 const active = document.querySelector('.nav-item.bg-green-600')?.getAttribute('onclick') || '';
                 if (active.includes('dashboard')) renderDashboard();
@@ -2092,7 +2121,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 wishlist.splice(index, 1);
                 showToast('Removed from wishlist', 'info');
             }
-            saveUserState();
+            saveUserStateDebounced();
             updateWishlistBadge(); 
             const active = document.querySelector('.nav-item.bg-green-600')?.getAttribute('onclick') || '';
             if (active.includes('wishlist')) renderWishlist();
@@ -2151,15 +2180,26 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
         async function deleteAddress(index) {
             if (confirm("Are you sure you want to delete this address?")) {
-                addresses.splice(index, 1);
-                if (addresses.length > 0) {
-                    currentAddress = addresses[0];
-                } else {
-                    currentAddress = null;
+                try {
+                    const res = await fetch(`${API_URL}/user/address/${index}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        addresses = data.addresses || [];
+                    } else {
+                        // Fallback: local splice + full sync
+                        addresses.splice(index, 1);
+                        await saveUserState();
+                    }
+                } catch(e) {
+                    addresses.splice(index, 1);
+                    await saveUserState();
                 }
-                await saveUserState();
+                currentAddress = addresses.length > 0 ? addresses[0] : null;
                 renderAddresses();
-                if(pendingCheckoutItems) renderSummary(); 
+                if (pendingCheckoutItems) renderSummary();
                 showToast("Address deleted", "info");
             }
         }
@@ -2186,28 +2226,58 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             const addressData = { 
                 name, 
                 phone, 
-                line1: line, // Ensured line1 to match backend schema
+                line1: line,
                 city, 
                 state, 
                 pincode,
                 label: addresses.length === 0 ? 'Default' : `Address ${addresses.length + 1}`
             };
+
             if (editingAddressIndex >= 0) {
+                // Editing: update locally and sync full state
                 addresses[editingAddressIndex] = { ...addresses[editingAddressIndex], ...addressData };
+                if (!currentAddress || editingAddressIndex === 0) currentAddress = addresses[0];
+                await saveUserState();
                 showToast('Address updated', 'success');
             } else {
-                addresses.push(addressData);
-                showToast('Address added', 'success');
+                // New address: save directly to MongoDB via dedicated endpoint
+                try {
+                    const res = await fetch(`${API_URL}/user/address`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(addressData)
+                    });
+                    if (!res.ok) throw new Error('Save failed');
+                    // Reload addresses fresh from server
+                    await loadAddressesFromServer();
+                    showToast('Address saved permanently ✓', 'success');
+                } catch(e) {
+                    // Fallback: save via full state sync
+                    addresses.push(addressData);
+                    await saveUserState();
+                    showToast('Address added', 'success');
+                }
             }
-            if (!currentAddress || editingAddressIndex === 0) {
-                currentAddress = addresses[0];
-            }
-            await saveUserState(); // Saving to DB
+
+            if (!currentAddress && addresses.length > 0) currentAddress = addresses[0];
             renderAddresses();
             closeAddressModal();
             if (pendingCheckoutItems && pendingCheckoutItems.length > 0) {
                 renderSummary();
             }
+        }
+
+        // Load only addresses from server (lightweight, no full state sync)
+        async function loadAddressesFromServer() {
+            try {
+                const res = await fetch(`${API_URL}/user/addresses`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    addresses = data.addresses || [];
+                    if (addresses.length > 0 && !currentAddress) currentAddress = addresses[0];
+                }
+            } catch(e) { console.warn('Could not load addresses from server', e); }
         }
         async function checkout() {
             if (cart.length === 0) {
@@ -2422,7 +2492,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             
             autoRefreshInterval = setInterval(() => {
                 loadData();
-            }, 2000);
+            }, 30000); // 30s — was 2s, which hammered the API on every render
             
             initPullToRefresh();
         }
@@ -2507,30 +2577,43 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             lucide.createIcons();
             initTheme();
 
-            // ── INSTANT RESTORE ON REFRESH ───────────────────────────────────
-            // Read cached user from localStorage. If found, show the app right
-            // away — zero delay, zero flash to login. The server session is
-            // verified silently in the background by checkAuth() below.
+            // ── SMART SESSION RESTORE ────────────────────────────────────────
+            // Behaviour:
+            //   - Fresh URL visit (new tab, direct link) → show login page
+            //   - Browser Refresh (F5 / ⌘R) on an active tab → restore instantly
+            //
+            // sessionStorage.getItem(SESSION_FLAG) is '1' only if this exact
+            // browser tab has been used to log in. It's wiped when the tab closes.
+            // localStorage.getItem('lm_user') holds the user across tabs.
+            //
             var savedUser = null;
             try { savedUser = JSON.parse(localStorage.getItem('lm_user')); } catch(e) {}
+            const tabIsActive   = sessionStorage.getItem(SESSION_FLAG) === '1';
+            const sessionValid  = isSessionStillValid();
 
-            if (savedUser && savedUser.id) {
-                currentUser = savedUser;          // seed global before anything else
+            if (savedUser && savedUser.id && tabIsActive && sessionValid) {
+                // ✅ Browser refresh on logged-in tab — restore immediately
+                currentUser = savedUser;
                 updateProfileUI();
                 updateCartBadge();
                 updateWishlistBadge();
                 updateNotificationBadge();
-                showApp();                        // calls initApp() → appInitialized = true
+                showApp();
                 resetSessionTimer();
-                loadUserState().then(() => {
-                    updateCartBadge();
-                    updateWishlistBadge();
-                });
-                loadData();                       // refresh livestock/orders in background
+                loadUserState().then(() => { updateCartBadge(); updateWishlistBadge(); });
+                loadData();
+            } else {
+                // ✅ Fresh visit or expired session — show login page
+                if (!sessionValid && savedUser) {
+                    // Expired — clean up
+                    localStorage.removeItem('lm_user');
+                    localStorage.removeItem(ACTIVITY_KEY);
+                    sessionStorage.removeItem(SESSION_FLAG);
+                }
+                showAuthScreen();
             }
 
-            // Background session check — safe because appInitialized is already
-            // true above, so checkAuth() will NEVER redirect to login anymore.
+            // Always silently verify with server in background.
             checkAuth();
         });
         
@@ -2664,19 +2747,9 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                     showToast(err.message || 'Order creation failed', 'error');
                     return;
                 }
-        // Ensure address is stored in user saved addresses
-        if (currentAddress) {
-            const exists = (addresses || []).some(a =>
-                a.name === currentAddress.name &&
-                a.phone === currentAddress.phone &&
-                a.line1 === currentAddress.line1 &&
-                a.pincode === currentAddress.pincode
-            );
-            if (!exists) {
-                addresses.push({ ...currentAddress });
-                await saveUserState();
-            }
-        }
+        // The server already saved the address when creating the order.
+        // Reload addresses from server to ensure frontend is in sync.
+        await loadAddressesFromServer();
 
                 
                 cart = cart.filter(c => !pendingCheckoutItems.some(p => p._id === c._id));
@@ -3251,25 +3324,23 @@ setLang("en");
 
 <script>
 // ── SPLASH GUARD ─────────────────────────────────────────────────────────────
-// If the user is already logged in (localStorage has their data), remove the
-// splash screen immediately. No 1.5s wait, no flicker, no login redirect.
+// Skip splash only on refresh of an active tab (sessionStorage flag present).
+// Fresh visits always see the splash → then login.
 (function() {
-    var hasUser = false;
-    try { hasUser = !!(JSON.parse(localStorage.getItem('lm_user') || 'null') || {}).id; } catch(e) {}
+    var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
     var splash = document.getElementById('splash-screen');
-    if (hasUser) {
-        // Logged-in refresh: kill splash instantly
-        if (splash) splash.remove();
+    if (isRefresh && splash) {
+        splash.remove(); // Refresh: instant, no flash
     } else {
-        // Fresh / logged-out visit: animate splash out after 1.5s
+        // Fresh visit: show splash briefly then fade out
         window.addEventListener("load", function() {
             var s = document.getElementById("splash-screen");
             if (!s) return;
             setTimeout(function() {
-                s.style.transition = "0.6s ease";
+                s.style.transition = "0.5s ease";
                 s.style.opacity = "0";
-                setTimeout(function() { s.remove(); }, 600);
-            }, 1500);
+                setTimeout(function() { s.remove(); }, 500);
+            }, 1200);
         });
     }
 })();
