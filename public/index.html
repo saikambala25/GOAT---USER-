@@ -50,7 +50,7 @@
         .card-premium { transition: transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .35s; }
         .card-premium:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 18px 40px rgba(0,0,0,0.15); }
 
-        .reveal { opacity: 0; transform: translateY(25px); transition: all .7s cubic-bezier(.2,.9,.2,1); }
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s cubic-bezier(.2,.9,.2,1); }
         .reveal-visible { opacity: 1; transform: translateY(0); }
 
         .toast-anim { transform: translateX(20px); opacity: 0; animation: toastIn .4s forwards, toastOut .4s forwards 3s; }
@@ -83,6 +83,46 @@
         .slider-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
         .slider-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.3s; }
         .slider-dot.active { background: white; }
+
+        /* ===== LIGHTBOX ===== */
+        #lm-lightbox {
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(0,0,0,0.95);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        #lm-lightbox.open { display: flex; }
+        #lm-lightbox img {
+            max-width: 95vw; max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+            transition: transform 0.3s ease;
+            cursor: zoom-in;
+            user-select: none;
+        }
+        #lm-lightbox img.zoomed { transform: scale(1.8); cursor: zoom-out; }
+        .lm-lb-close {
+            position: absolute; top: 16px; right: 20px;
+            color: white; font-size: 32px; cursor: pointer;
+            background: rgba(255,255,255,0.15); border-radius: 50%;
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            line-height: 1; z-index: 10;
+        }
+        .lm-lb-close:hover { background: rgba(255,255,255,0.3); }
+        .lm-lb-nav {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            color: white; font-size: 36px; cursor: pointer;
+            background: rgba(255,255,255,0.15); border-radius: 50%;
+            width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+            user-select: none; z-index: 10;
+        }
+        .lm-lb-nav:hover { background: rgba(255,255,255,0.3); }
+        #lm-lb-prev { left: 12px; }
+        #lm-lb-next { right: 12px; }
+        .lm-lb-counter {
+            color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 12px;
+        }
     
 /* Poster-Style Marquee: Fills card while keeping details */
 .lm-marquee-container {
@@ -163,6 +203,15 @@
     
     <div id="pull-refresh-indicator">
         <div class="spinner"></div>
+    </div>
+
+    <!-- ===== IMAGE LIGHTBOX ===== -->
+    <div id="lm-lightbox" onclick="lbBackdropClick(event)">
+        <span class="lm-lb-close" onclick="closeLightbox()">✕</span>
+        <span class="lm-lb-nav" id="lm-lb-prev" onclick="lbNav(-1)">‹</span>
+        <img id="lm-lb-img" src="" alt="Livestock" onclick="lbToggleZoom(this)">
+        <span class="lm-lb-nav" id="lm-lb-next" onclick="lbNav(1)">›</span>
+        <div class="lm-lb-counter" id="lm-lb-counter"></div>
     </div>
 
     <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
@@ -852,32 +901,52 @@
         let autoRefreshInterval = null; 
         let proofUploaded = false; 
         let isSavingState = false;
+let _saveDebounceTimer = null;
+
+// Debounced save — batches rapid changes into one DB write (300ms window)
+function saveUserStateDebounced() {
+    if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
+    _saveDebounceTimer = setTimeout(() => saveUserState(), 300);
+}
 let currentOrderFilter = 'all';
 let isConfirmingPayment = false;
 
-// --- Session auto-logout (30 minutes) ---
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+// ── SESSION MANAGEMENT ─────────────────────────────────────────────────────
+// 5-hour inactivity timeout. Activity updates a timestamp in localStorage.
+// On refresh: sessionStorage flag + inactivity check decide whether to restore.
+// On fresh URL visit (new tab, direct link): always show login page.
+
+const SESSION_TIMEOUT_MS = 5 * 60 * 60 * 1000; // 5 hours
+const ACTIVITY_KEY       = 'lm_last_active';
+const SESSION_FLAG       = 'lm_tab_session';    // sessionStorage — dies with tab
 let sessionTimer = null;
 
-function resetSessionTimer() {
-  if (!currentUser) return;
-  if (sessionTimer) clearTimeout(sessionTimer);
-  sessionTimer = setTimeout(() => {
-    showToast('Session expired. Please login again.', 'info');
-    handleLogout();
-  }, SESSION_TIMEOUT_MS);
+function markActivity() {
+    if (!currentUser) return;
+    localStorage.setItem(ACTIVITY_KEY, Date.now().toString());
+    sessionStorage.setItem(SESSION_FLAG, '1');
 }
 
-['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach((evt) => {
-  document.addEventListener(
-    evt,
-    () => {
-      if (currentUser) resetSessionTimer();
-    },
-    { passive: true }
-  );
+function resetSessionTimer() {
+    if (!currentUser) return;
+    if (sessionTimer) clearTimeout(sessionTimer);
+    markActivity();
+    sessionTimer = setTimeout(() => {
+        showToast('You have been logged out due to 5 hours of inactivity.', 'info');
+        handleLogout();
+    }, SESSION_TIMEOUT_MS);
+}
+
+function isSessionStillValid() {
+    // Must have both: a stored user AND recent activity within 5 hours
+    const lastActive = parseInt(localStorage.getItem(ACTIVITY_KEY) || '0', 10);
+    return lastActive && (Date.now() - lastActive < SESSION_TIMEOUT_MS);
+}
+
+['click', 'mousemove', 'keydown', 'scroll', 'touchstart', 'touchmove'].forEach((evt) => {
+    document.addEventListener(evt, () => { if (currentUser) markActivity(); }, { passive: true });
 });
-; // Fix: Flag to prevent race conditions during sync
+// Fix: Flag to prevent race conditions during sync
         
         // --- Language & Notifications ---
         let currentLang = localStorage.getItem('lm_lang') || 'en';
@@ -1132,7 +1201,8 @@ function resetSessionTimer() {
                     notifications = data.notifications || []; 
                     if (addresses.length > 0 && !currentAddress) currentAddress = addresses[0];
                 } else {
-                    cart = []; wishlist = []; addresses = []; notifications = []; currentAddress = null;
+                    cart = []; wishlist = []; notifications = []; currentAddress = null;
+                    // Keep existing addresses — don't wipe them on a failed state load
                 }
             } catch (e) { console.error('Error loading user state:', e); }
         }
@@ -1239,15 +1309,17 @@ function resetSessionTimer() {
                 if (!res.ok) return showAuthError(data.message || 'Login failed.');
                 
                 currentUser = data.user;
+                localStorage.setItem('lm_user', JSON.stringify(currentUser));
+                sessionStorage.setItem(SESSION_FLAG, '1');
+                markActivity();
                 await loadUserState();
                 updateProfileUI();
                 updateCartBadge();
                 updateWishlistBadge(); 
                 updateNotificationBadge(); 
                 showToast('Logged in successfully', 'success');
-                showApp()
-  resetSessionTimer();
-;
+                showApp();
+                resetSessionTimer();
             } catch (err) {
                 console.error('Login error', err);
                 showAuthError('Something went wrong. Please try again.');
@@ -1272,15 +1344,17 @@ function resetSessionTimer() {
                 if (!res.ok) return showAuthError(data.message || 'Registration failed.');
                 
                 currentUser = data.user;
+                localStorage.setItem('lm_user', JSON.stringify(currentUser));
+                sessionStorage.setItem(SESSION_FLAG, '1');
+                markActivity();
                 await loadUserState();
                 updateProfileUI();
                 updateCartBadge();
                 updateWishlistBadge(); 
                 updateNotificationBadge(); 
                 showToast('Account created & logged in', 'success');
-                showApp()
-  resetSessionTimer();
-;
+                showApp();
+                resetSessionTimer();
             } catch (err) {
                 console.error('Register error', err);
                 showAuthError('Something went wrong. Please try again.');
@@ -1289,6 +1363,9 @@ function resetSessionTimer() {
         async function handleLogout() {
   if (sessionTimer) clearTimeout(sessionTimer);
   sessionTimer = null;
+  localStorage.removeItem('lm_user');
+  localStorage.removeItem(ACTIVITY_KEY);
+  sessionStorage.removeItem(SESSION_FLAG);
 
             try { await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' }); } catch (err) {}
             currentUser = null; cart = []; wishlist = []; addresses = []; currentAddress = null; notifications = [];
@@ -1304,18 +1381,46 @@ function resetSessionTimer() {
             showAuthScreen();
         }
         async function checkAuth() {
+            // CRITICAL: Never redirect to login if the app is already running.
+            // appInitialized = true means the user restored from localStorage and
+            // is actively using the app. Only show login on a totally fresh visit.
+            const appAlreadyRunning = appInitialized;
             try {
                 const res = await fetch(`${API_URL}/auth/me?_=${Date.now()}`, { method: 'GET', credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
                     currentUser = data.user;
-                    await loadUserState(); 
-                    updateProfileUI();
-                    showApp()
-    resetSessionTimer();
-;
-                } else showAuthScreen();
-            } catch (err) { showAuthScreen(); }
+                    localStorage.setItem('lm_user', JSON.stringify(currentUser));
+                    sessionStorage.setItem(SESSION_FLAG, '1');
+                    markActivity();
+                    if (!appAlreadyRunning) {
+                        // Fresh visit with valid server session — boot the app
+                        await loadUserState();
+                        updateProfileUI();
+                        updateCartBadge();
+                        updateWishlistBadge();
+                        updateNotificationBadge();
+                        showApp();
+                    } else {
+                        // App already running — just silently refresh user data
+                        updateProfileUI();
+                        resetSessionTimer();
+                    }
+                } else if (res.status === 401 && !appAlreadyRunning) {
+                    // Server says "not logged in" AND app hasn't started yet →
+                    // this is a genuine logged-out state, show login screen.
+                    localStorage.removeItem('lm_user');
+                    currentUser = null;
+                    showAuthScreen();
+                }
+                // 401 while app is running = stale cookie, but user stays in app.
+                // handleLogout() is the ONLY way to intentionally send to login.
+            } catch (err) {
+                // Network error — never kick user out. Silently ignore.
+                if (!appAlreadyRunning && !localStorage.getItem('lm_user')) {
+                    showAuthScreen();
+                }
+            }
         }
         async function loadData() {
             if (currentUser && !isSavingState) await loadUserState(); // Fix: Only load if not saving
@@ -1578,7 +1683,7 @@ function resetSessionTimer() {
                 let imagesHTML = '';
                 if (imageCount > 1) {
                     const imagesArray = Array.from({length: imageCount}, (_, i) =>
-                        `<img src="${API_URL}/livestock/image/${item._id}/${i}" alt="${item.name}" class="slider-image w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">`
+                        `<img src="${API_URL}/livestock/image/${item._id}/${i}" alt="${item.name}" class="slider-image w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onclick="openLightbox('${item._id}', ${0}, ${imageCount})" style="cursor:zoom-in;" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">`
                     ).join('');
 
                     const dotsHTML = Array.from({length: imageCount}, (_, i) =>
@@ -1606,7 +1711,7 @@ function resetSessionTimer() {
                     imagesHTML = `
                         <div class="h-40 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-6xl mb-4 relative overflow-hidden">
                             ${soldOverlay}
-                            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">
+                            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onclick="openLightbox('${item._id}', 0, 1)" style="cursor:zoom-in;" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">
                             <button onclick="toggleWishlist('${item._id}')" class="absolute top-2 right-2 p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm hover:text-red-500 ${inWishlist ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'} z-20">
                                 <i data-lucide="heart" class="w-4 h-4 ${inWishlist ? 'fill-current' : ''}"></i>
                             </button>
@@ -1874,7 +1979,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 let imagesHTML = '';
                 if (imageCount > 1) {
                     const imagesArray = Array.from({length: imageCount}, (_, i) =>
-                        `<img src="${API_URL}/livestock/image/${item._id}/${i}" alt="${item.name}" class="slider-image w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">`
+                        `<img src="${API_URL}/livestock/image/${item._id}/${i}" alt="${item.name}" class="slider-image w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onclick="openLightbox('${item._id}', ${0}, ${imageCount})" style="cursor:zoom-in;" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">`
                     ).join('');
 
                     const dotsHTML = Array.from({length: imageCount}, (_, i) =>
@@ -1899,7 +2004,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                     imagesHTML = `
                         <div class="h-40 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-6xl mb-4 overflow-hidden relative">
                              ${soldOverlay}
-                            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">
+                            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover rounded-lg ${isSold ? 'grayscale opacity-75' : ''}" onclick="openLightbox('${item._id}', 0, 1)" style="cursor:zoom-in;" onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">
                         </div>
                     `;
                 }
@@ -1985,7 +2090,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 };
                 cart.push(cartItem);
                 updateCartBadge();
-                saveUserState();
+                saveUserStateDebounced();
                 showToast(`${item.name} added to cart`, 'success');
                 const active = document.querySelector('.nav-item.bg-green-600')?.getAttribute('onclick') || '';
                 if (active.includes('dashboard')) renderDashboard();
@@ -2016,7 +2121,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 wishlist.splice(index, 1);
                 showToast('Removed from wishlist', 'info');
             }
-            saveUserState();
+            saveUserStateDebounced();
             updateWishlistBadge(); 
             const active = document.querySelector('.nav-item.bg-green-600')?.getAttribute('onclick') || '';
             if (active.includes('wishlist')) renderWishlist();
@@ -2075,15 +2180,26 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
         async function deleteAddress(index) {
             if (confirm("Are you sure you want to delete this address?")) {
-                addresses.splice(index, 1);
-                if (addresses.length > 0) {
-                    currentAddress = addresses[0];
-                } else {
-                    currentAddress = null;
+                try {
+                    const res = await fetch(`${API_URL}/user/address/${index}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        addresses = data.addresses || [];
+                    } else {
+                        // Fallback: local splice + full sync
+                        addresses.splice(index, 1);
+                        await saveUserState();
+                    }
+                } catch(e) {
+                    addresses.splice(index, 1);
+                    await saveUserState();
                 }
-                await saveUserState();
+                currentAddress = addresses.length > 0 ? addresses[0] : null;
                 renderAddresses();
-                if(pendingCheckoutItems) renderSummary(); 
+                if (pendingCheckoutItems) renderSummary();
                 showToast("Address deleted", "info");
             }
         }
@@ -2110,28 +2226,58 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             const addressData = { 
                 name, 
                 phone, 
-                line1: line, // Ensured line1 to match backend schema
+                line1: line,
                 city, 
                 state, 
                 pincode,
                 label: addresses.length === 0 ? 'Default' : `Address ${addresses.length + 1}`
             };
+
             if (editingAddressIndex >= 0) {
+                // Editing: update locally and sync full state
                 addresses[editingAddressIndex] = { ...addresses[editingAddressIndex], ...addressData };
+                if (!currentAddress || editingAddressIndex === 0) currentAddress = addresses[0];
+                await saveUserState();
                 showToast('Address updated', 'success');
             } else {
-                addresses.push(addressData);
-                showToast('Address added', 'success');
+                // New address: save directly to MongoDB via dedicated endpoint
+                try {
+                    const res = await fetch(`${API_URL}/user/address`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(addressData)
+                    });
+                    if (!res.ok) throw new Error('Save failed');
+                    // Reload addresses fresh from server
+                    await loadAddressesFromServer();
+                    showToast('Address saved permanently ✓', 'success');
+                } catch(e) {
+                    // Fallback: save via full state sync
+                    addresses.push(addressData);
+                    await saveUserState();
+                    showToast('Address added', 'success');
+                }
             }
-            if (!currentAddress || editingAddressIndex === 0) {
-                currentAddress = addresses[0];
-            }
-            await saveUserState(); // Saving to DB
+
+            if (!currentAddress && addresses.length > 0) currentAddress = addresses[0];
             renderAddresses();
             closeAddressModal();
             if (pendingCheckoutItems && pendingCheckoutItems.length > 0) {
                 renderSummary();
             }
+        }
+
+        // Load only addresses from server (lightweight, no full state sync)
+        async function loadAddressesFromServer() {
+            try {
+                const res = await fetch(`${API_URL}/user/addresses`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    addresses = data.addresses || [];
+                    if (addresses.length > 0 && !currentAddress) currentAddress = addresses[0];
+                }
+            } catch(e) { console.warn('Could not load addresses from server', e); }
         }
         async function checkout() {
             if (cart.length === 0) {
@@ -2346,7 +2492,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             
             autoRefreshInterval = setInterval(() => {
                 loadData();
-            }, 2000);
+            }, 30000); // 30s — was 2s, which hammered the API on every render
             
             initPullToRefresh();
         }
@@ -2391,7 +2537,8 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 if (diff > threshold && container.scrollTop <= 0) {
                     indicator.style.top = '20px';
                     setTimeout(() => {
-                        window.location.reload();
+                        loadData();
+                        indicator.style.top = '-50px';
                     }, 500);
                 } else {
                     indicator.style.top = '-50px';
@@ -2427,8 +2574,47 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
         document.addEventListener('DOMContentLoaded', () => {
             attachEventListeners();
-            checkAuth();
             lucide.createIcons();
+            initTheme();
+
+            // ── SMART SESSION RESTORE ────────────────────────────────────────
+            // Behaviour:
+            //   - Fresh URL visit (new tab, direct link) → show login page
+            //   - Browser Refresh (F5 / ⌘R) on an active tab → restore instantly
+            //
+            // sessionStorage.getItem(SESSION_FLAG) is '1' only if this exact
+            // browser tab has been used to log in. It's wiped when the tab closes.
+            // localStorage.getItem('lm_user') holds the user across tabs.
+            //
+            var savedUser = null;
+            try { savedUser = JSON.parse(localStorage.getItem('lm_user')); } catch(e) {}
+            const tabIsActive   = sessionStorage.getItem(SESSION_FLAG) === '1';
+            const sessionValid  = isSessionStillValid();
+
+            if (savedUser && savedUser.id && tabIsActive && sessionValid) {
+                // ✅ Browser refresh on logged-in tab — restore immediately
+                currentUser = savedUser;
+                updateProfileUI();
+                updateCartBadge();
+                updateWishlistBadge();
+                updateNotificationBadge();
+                showApp();
+                resetSessionTimer();
+                loadUserState().then(() => { updateCartBadge(); updateWishlistBadge(); });
+                loadData();
+            } else {
+                // ✅ Fresh visit or expired session — show login page
+                if (!sessionValid && savedUser) {
+                    // Expired — clean up
+                    localStorage.removeItem('lm_user');
+                    localStorage.removeItem(ACTIVITY_KEY);
+                    sessionStorage.removeItem(SESSION_FLAG);
+                }
+                showAuthScreen();
+            }
+
+            // Always silently verify with server in background.
+            checkAuth();
         });
         
         function showPaymentUI(upiString, paymentId, itemsToBuy, total) {
@@ -2561,19 +2747,9 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                     showToast(err.message || 'Order creation failed', 'error');
                     return;
                 }
-        // Ensure address is stored in user saved addresses
-        if (currentAddress) {
-            const exists = (addresses || []).some(a =>
-                a.name === currentAddress.name &&
-                a.phone === currentAddress.phone &&
-                a.line1 === currentAddress.line1 &&
-                a.pincode === currentAddress.pincode
-            );
-            if (!exists) {
-                addresses.push({ ...currentAddress });
-                await saveUserState();
-            }
-        }
+        // The server already saved the address when creating the order.
+        // Reload addresses from server to ensure frontend is in sync.
+        await loadAddressesFromServer();
 
                 
                 cart = cart.filter(c => !pendingCheckoutItems.some(p => p._id === c._id));
@@ -2693,6 +2869,64 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 }
             });
         }
+
+        // ===== LIGHTBOX =====
+        let _lbImages = [];
+        let _lbIndex = 0;
+
+        function openLightbox(itemId, startIndex, totalImages) {
+            _lbImages = [];
+            if (totalImages > 1) {
+                for (let i = 0; i < totalImages; i++) {
+                    _lbImages.push(`${API_URL}/livestock/image/${itemId}/${i}`);
+                }
+            } else {
+                _lbImages.push(`${API_URL}/livestock/image/${itemId}`);
+            }
+            _lbIndex = startIndex || 0;
+            _lbShow();
+            document.getElementById('lm-lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            // Keyboard support
+            document.addEventListener('keydown', lbKeyHandler);
+        }
+
+        function _lbShow() {
+            const img = document.getElementById('lm-lb-img');
+            const counter = document.getElementById('lm-lb-counter');
+            const prev = document.getElementById('lm-lb-prev');
+            const next = document.getElementById('lm-lb-next');
+            img.classList.remove('zoomed');
+            img.src = _lbImages[_lbIndex];
+            counter.textContent = _lbImages.length > 1 ? `${_lbIndex + 1} / ${_lbImages.length}` : '';
+            prev.style.display = _lbImages.length > 1 ? 'flex' : 'none';
+            next.style.display = _lbImages.length > 1 ? 'flex' : 'none';
+        }
+
+        function lbNav(dir) {
+            _lbIndex = (_lbIndex + dir + _lbImages.length) % _lbImages.length;
+            _lbShow();
+        }
+
+        function lbToggleZoom(img) {
+            img.classList.toggle('zoomed');
+        }
+
+        function lbBackdropClick(e) {
+            if (e.target === document.getElementById('lm-lightbox')) closeLightbox();
+        }
+
+        function closeLightbox() {
+            document.getElementById('lm-lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', lbKeyHandler);
+        }
+
+        function lbKeyHandler(e) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') lbNav(-1);
+            if (e.key === 'ArrowRight') lbNav(1);
+        }
     </script>
     <script>
     (function(){
@@ -2710,22 +2944,34 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         } catch(e){ console.error("animatePage error", e); }
       };
 
-      const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("reveal-visible");
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.18 });
+      // Use #content-area as the scroll root so the observer fires correctly
+      // inside the inner scrollable div (not the window).
+      function makeRevealObserver() {
+        const root = document.getElementById('content-area') || null;
+        return new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("reveal-visible");
+              entry.target.revealObs && entry.target.revealObs.unobserve(entry.target);
+            }
+          });
+        }, { root: root, threshold: 0.05, rootMargin: "0px 0px 60px 0px" });
+      }
 
       window.applyRevealAndPremium = function(){
         try {
           const grid = document.getElementById('livestock-grid');
           if(!grid) return;
+          // Build a fresh observer each time so the root is available
+          const obs = makeRevealObserver();
           Array.from(grid.children).forEach(el => {
-            el.classList.add('reveal','card-premium');
-            revealObserver.observe(el);
+            // Remove old reveal state so cards don't get stuck hidden on re-render
+            el.classList.remove('reveal', 'reveal-visible');
+            el.classList.add('card-premium');
+            void el.offsetWidth; // force reflow
+            el.classList.add('reveal');
+            el.revealObs = obs;
+            obs.observe(el);
           });
         } catch(e){ console.error("applyReveal error", e); }
       };
@@ -3062,31 +3308,8 @@ setLang("en");
     </script>
     
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
-        if (!res.ok) {
-            document.getElementById("auth-screen")?.classList.remove("hidden");
-            document.getElementById("user-app")?.classList.add("hidden");
-            return;
-        }
-        const data = await res.json();
-        if (data.user) {
-            window.currentUser = data.user;
-            document.getElementById("auth-screen")?.classList.add("hidden");
-            document.getElementById("user-app")?.classList.remove("hidden");
-        } else {
-            document.getElementById("auth-screen")?.classList.remove("hidden");
-            document.getElementById("user-app")?.classList.add("hidden");
-        }
-    } catch (err) {
-        console.error("Session restore failed:", err);
-        document.getElementById("auth-screen")?.classList.remove("hidden");
-        document.getElementById("user-app")?.classList.add("hidden");
-    }
-});
-</script>
+
+<!-- auth restore handled by checkAuth() called in DOMContentLoaded above -->
 
 </body>
 </html>
@@ -3100,26 +3323,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 </div>
 
 <script>
-window.addEventListener("load", function() {
-    setTimeout(function() {
-        var splash = document.getElementById("splash-screen");
-        if (splash) {
-            splash.style.transition = "0.6s ease";
-            splash.style.opacity = "0";
+// ── SPLASH GUARD ─────────────────────────────────────────────────────────────
+// Skip splash only on refresh of an active tab (sessionStorage flag present).
+// Fresh visits always see the splash → then login.
+(function() {
+    var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
+    var splash = document.getElementById('splash-screen');
+    if (isRefresh && splash) {
+        splash.remove(); // Refresh: instant, no flash
+    } else {
+        // Fresh visit: show splash briefly then fade out
+        window.addEventListener("load", function() {
+            var s = document.getElementById("splash-screen");
+            if (!s) return;
             setTimeout(function() {
-                splash.remove();
-                var auth = document.getElementById("auth-screen");
-                if (auth) auth.classList.remove("hidden");
-            }, 600);
-        }
-    }, 1500);
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll("img").forEach(img => {
-        img.setAttribute("loading", "lazy");
-        img.setAttribute("decoding", "async");
-    });
-});
+                s.style.transition = "0.5s ease";
+                s.style.opacity = "0";
+                setTimeout(function() { s.remove(); }, 500);
+            }, 1200);
+        });
+    }
+})();
 </script>
 <!-- ==================================================== -->
