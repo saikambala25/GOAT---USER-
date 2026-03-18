@@ -192,6 +192,58 @@
   100% { transform: translateX(-50%); }
 }
 
+        /* ═══════════════════════════════════════════════════════
+           USER DASHBOARD — PREMIUM ANIMATION SYSTEM
+        ═══════════════════════════════════════════════════════ */
+        @keyframes udShimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position:  600px 0; }
+        }
+        .ud-skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
+            background-size: 600px 100%;
+            animation: udShimmer 1.3s ease-in-out infinite;
+            border-radius: 10px;
+        }
+        .dark .ud-skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #2d3f55 50%, #1e293b 75%);
+            background-size: 600px 100%;
+        }
+        @keyframes udCardRise {
+            0%   { opacity:0; transform: translateY(26px) scale(.96); }
+            100% { opacity:1; transform: translateY(0) scale(1); }
+        }
+        .ud-card-enter { animation: udCardRise .5s cubic-bezier(.22,.68,0,1.2) both; }
+        @keyframes udNumPop {
+            0%   { opacity:0; transform: scale(.6); }
+            70%  { transform: scale(1.12); }
+            100% { opacity:1; transform: scale(1); }
+        }
+        .ud-num-pop { animation: udNumPop .55s cubic-bezier(.34,1.56,.64,1) both; }
+        @keyframes udOrbPulse {
+            0%,100% { transform:scale(1);    opacity:.3; }
+            50%      { transform:scale(1.18); opacity:.5; }
+        }
+        .ud-orb { animation: udOrbPulse 3s ease-in-out infinite; }
+        @keyframes udRowSlide {
+            from { opacity:0; transform: translateX(-14px); }
+            to   { opacity:1; transform: translateX(0); }
+        }
+        .ud-row-enter { animation: udRowSlide .4s ease both; }
+        @keyframes udProgressFill { from { width: 0; } }
+        .ud-progress { animation: udProgressFill .9s cubic-bezier(.22,.68,0,1.2) both; }
+        @keyframes udLivePulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.6); }
+            50%      { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+        }
+        .ud-live-dot { animation: udLivePulse 1.6s ease-in-out infinite; }
+        @keyframes udRingDraw { from { stroke-dashoffset: 220; } }
+        .ud-ring { animation: udRingDraw .9s cubic-bezier(.22,.68,0,1.2) both; }
+        .ud-stat-card {
+            transition: transform .25s cubic-bezier(.22,.68,0,1.2), box-shadow .25s ease;
+        }
+        .ud-stat-card:hover { transform: translateY(-5px) scale(1.02); }
+
 </style>
 
     <link rel="manifest" href="manifest.json">
@@ -519,55 +571,188 @@
             
             <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 dark:bg-gray-900 hide-scrollbar relative pb-24 transition-colors">
                 
-                <div id="view-dashboard" class="space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center transition-colors">
-                            <div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">My Orders</p>
-                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white" id="dash-total-orders">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-xl">📦</div>
+                <!-- ╔══════════════════════════════════════════╗ -->
+                <!-- ║    PREMIUM USER DASHBOARD                ║ -->
+                <!-- ╚══════════════════════════════════════════╝ -->
+                <div id="view-dashboard" class="pb-6">
+
+                  <!-- Welcome Banner -->
+                  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 p-6 md:p-7 mb-6 shadow-2xl shadow-emerald-500/30 ud-card-enter" style="animation-delay:.05s">
+                    <div class="ud-orb absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full blur-3xl"></div>
+                    <div class="ud-orb absolute bottom-0 left-1/3 w-28 h-28 bg-white/10 rounded-full blur-2xl" style="animation-delay:.9s"></div>
+                    <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div class="flex items-center gap-2 mb-2">
+                          <span class="inline-block w-2.5 h-2.5 bg-emerald-300 rounded-full ud-live-dot"></span>
+                          <span class="text-emerald-100 text-xs font-semibold uppercase tracking-widest">LivestockMart</span>
                         </div>
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center transition-colors">
-                            <div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Wishlist</p>
-                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white" id="dash-total-wishlist">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 rounded-full flex items-center justify-center text-xl">❤️</div>
-                        </div>
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center transition-colors">
-                            <div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Cart Items</p>
-                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white" id="dash-total-cart">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center text-xl">🛒</div>
-                        </div>
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center transition-colors">
-                            <div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Livestock</p>
-                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white" id="dash-total-livestock">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center text-xl">🐐</div>
-                        </div>
+                        <h2 class="text-xl md:text-2xl font-extrabold text-white leading-tight" id="ud-welcome-name">Welcome back! 👋</h2>
+                        <p class="text-emerald-100/80 text-sm mt-1" id="ud-greeting-date">Loading...</p>
+                      </div>
+                      <button onclick="router('browse')" class="flex-shrink-0 flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-sm font-semibold px-5 py-2.5 rounded-2xl transition-all border border-white/20 hover:border-white/40">
+                        <i data-lucide="search" class="w-4 h-4"></i> Browse Livestock
+                      </button>
                     </div>
-                    
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Spent</p>
-                                <h3 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white" id="dash-total-spent">0</h3>
-                            </div>
-                            <div class="w-12 h-12 md:w-16 md:h-16 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center text-2xl md:text-3xl">💰</div>
+                  </div>
+
+                  <!-- 4 Stat Cards -->
+                  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-5">
+
+                    <!-- My Orders -->
+                    <div onclick="router('orders')" class="ud-stat-card ud-card-enter relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl cursor-pointer" style="animation-delay:.1s">
+                      <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl"></div>
+                      <div class="relative z-10 flex items-start justify-between mb-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-blue-500 dark:text-blue-400">My Orders</p>
+                        <div class="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-md shadow-blue-400/30">
+                          <i data-lucide="package" class="w-4 h-4 text-white"></i>
                         </div>
+                      </div>
+                      <h3 class="relative z-10 text-3xl font-black text-gray-900 dark:text-white leading-none" id="dash-total-orders">
+                        <span class="ud-skeleton inline-block h-9 w-12 align-middle"></span>
+                      </h3>
+                      <p class="relative z-10 text-xs text-gray-400 mt-2">Total placed</p>
                     </div>
-                    
-                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-colors">
-                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="font-bold text-gray-800 dark:text-white lang-recent-orders">Recent Orders</h3>
+
+                    <!-- Wishlist -->
+                    <div onclick="router('wishlist')" class="ud-stat-card ud-card-enter relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl cursor-pointer" style="animation-delay:.17s">
+                      <div class="absolute inset-0 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-2xl"></div>
+                      <div class="relative z-10 flex items-start justify-between mb-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-pink-500 dark:text-pink-400">Wishlist</p>
+                        <div class="p-2 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl shadow-md shadow-pink-400/30">
+                          <i data-lucide="heart" class="w-4 h-4 text-white"></i>
                         </div>
-                        <div class="p-4 md:p-6 space-y-4" id="dash-recent-orders"></div>
+                      </div>
+                      <h3 class="relative z-10 text-3xl font-black text-gray-900 dark:text-white leading-none" id="dash-total-wishlist">
+                        <span class="ud-skeleton inline-block h-9 w-12 align-middle"></span>
+                      </h3>
+                      <p class="relative z-10 text-xs text-gray-400 mt-2">Saved items</p>
                     </div>
+
+                    <!-- Cart -->
+                    <div onclick="router('cart')" class="ud-stat-card ud-card-enter relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl cursor-pointer" style="animation-delay:.24s">
+                      <div class="absolute inset-0 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl"></div>
+                      <div class="relative z-10 flex items-start justify-between mb-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-orange-500 dark:text-orange-400">Cart</p>
+                        <div class="p-2 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl shadow-md shadow-orange-400/30">
+                          <i data-lucide="shopping-cart" class="w-4 h-4 text-white"></i>
+                        </div>
+                      </div>
+                      <h3 class="relative z-10 text-3xl font-black text-gray-900 dark:text-white leading-none" id="dash-total-cart">
+                        <span class="ud-skeleton inline-block h-9 w-12 align-middle"></span>
+                      </h3>
+                      <p class="relative z-10 text-xs text-gray-400 mt-2">Items ready</p>
+                    </div>
+
+                    <!-- Market -->
+                    <div onclick="router('browse')" class="ud-stat-card ud-card-enter relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl cursor-pointer" style="animation-delay:.31s">
+                      <div class="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl"></div>
+                      <div class="relative z-10 flex items-start justify-between mb-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-emerald-500 dark:text-emerald-400">Market</p>
+                        <div class="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-md shadow-emerald-400/30">
+                          <i data-lucide="store" class="w-4 h-4 text-white"></i>
+                        </div>
+                      </div>
+                      <h3 class="relative z-10 text-3xl font-black text-gray-900 dark:text-white leading-none" id="dash-total-livestock">
+                        <span class="ud-skeleton inline-block h-9 w-12 align-middle"></span>
+                      </h3>
+                      <p class="relative z-10 text-xs text-gray-400 mt-2">Available now</p>
+                    </div>
+                  </div>
+
+                  <!-- Total Spent + Order Donut — 2 col -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+
+                    <!-- Total Spent hero card -->
+                    <div class="ud-card-enter relative overflow-hidden bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-6 shadow-xl shadow-yellow-400/30" style="animation-delay:.38s">
+                      <div class="ud-orb absolute -bottom-6 -right-6 w-32 h-32 bg-white/15 rounded-full blur-2xl"></div>
+                      <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                          <p class="text-yellow-50 text-sm font-semibold uppercase tracking-wider">Total Spent</p>
+                          <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                            <i data-lucide="wallet" class="w-5 h-5 text-white"></i>
+                          </div>
+                        </div>
+                        <h3 class="text-3xl md:text-4xl font-black text-white leading-none" id="dash-total-spent">
+                          <span class="ud-skeleton inline-block h-10 w-28 align-middle" style="background:rgba(255,255,255,.25);"></span>
+                        </h3>
+                        <p class="text-yellow-100/80 text-xs mt-3">Lifetime purchases</p>
+                      </div>
+                    </div>
+
+                    <!-- Order status mini-donut -->
+                    <div class="ud-card-enter bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm" style="animation-delay:.44s">
+                      <div class="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 class="font-bold text-gray-800 dark:text-white text-sm">Order Status</h4>
+                          <p class="text-xs text-gray-400">Your order breakdown</p>
+                        </div>
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-gray-400"></i>
+                      </div>
+                      <div class="flex items-center gap-5">
+                        <!-- Mini donut -->
+                        <div class="relative flex-shrink-0">
+                          <svg width="80" height="80" viewBox="0 0 80 80" class="-rotate-90">
+                            <circle cx="40" cy="40" r="35" fill="none" stroke-width="10"
+                              class="stroke-gray-100 dark:stroke-gray-700"/>
+                            <circle id="ud-donut-active" cx="40" cy="40" r="35" fill="none" stroke-width="10"
+                              stroke="#10b981" stroke-linecap="round"
+                              stroke-dasharray="220" stroke-dashoffset="220"
+                              class="ud-ring" style="animation-delay:.5s"/>
+                            <circle id="ud-donut-delivered" cx="40" cy="40" r="35" fill="none" stroke-width="10"
+                              stroke="#6366f1" stroke-linecap="round"
+                              stroke-dasharray="220" stroke-dashoffset="220"
+                              class="ud-ring" style="animation-delay:.65s"/>
+                          </svg>
+                          <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm font-black text-gray-800 dark:text-white" id="ud-donut-total">—</span>
+                          </div>
+                        </div>
+                        <!-- Legend -->
+                        <div class="flex-1 space-y-2" id="ud-order-legend">
+                          <div class="ud-skeleton h-5 w-full rounded"></div>
+                          <div class="ud-skeleton h-5 w-4/5 rounded" style="animation-delay:.1s"></div>
+                          <div class="ud-skeleton h-5 w-3/4 rounded" style="animation-delay:.2s"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Recent Orders -->
+                  <div class="ud-card-enter bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden" style="animation-delay:.5s">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+                      <div>
+                        <h4 class="font-bold text-gray-800 dark:text-white text-sm lang-recent-orders">Recent Orders</h4>
+                        <p class="text-xs text-gray-400 mt-0.5">Your latest activity</p>
+                      </div>
+                      <button onclick="router('orders')" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                        View all <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                      </button>
+                    </div>
+                    <div id="dash-recent-orders" class="divide-y divide-gray-50 dark:divide-gray-700/60">
+                      <!-- Skeleton rows -->
+                      <div class="flex items-center gap-3 px-5 py-3">
+                        <div class="ud-skeleton h-10 w-10 rounded-full flex-shrink-0"></div>
+                        <div class="flex-1 space-y-1.5"><div class="ud-skeleton h-3.5 w-36 rounded"></div><div class="ud-skeleton h-3 w-24 rounded"></div></div>
+                        <div class="ud-skeleton h-6 w-20 rounded-full"></div>
+                        <div class="ud-skeleton h-4 w-14 rounded"></div>
+                      </div>
+                      <div class="flex items-center gap-3 px-5 py-3">
+                        <div class="ud-skeleton h-10 w-10 rounded-full flex-shrink-0"></div>
+                        <div class="flex-1 space-y-1.5"><div class="ud-skeleton h-3.5 w-44 rounded"></div><div class="ud-skeleton h-3 w-20 rounded"></div></div>
+                        <div class="ud-skeleton h-6 w-20 rounded-full"></div>
+                        <div class="ud-skeleton h-4 w-14 rounded"></div>
+                      </div>
+                      <div class="flex items-center gap-3 px-5 py-3">
+                        <div class="ud-skeleton h-10 w-10 rounded-full flex-shrink-0"></div>
+                        <div class="flex-1 space-y-1.5"><div class="ud-skeleton h-3.5 w-28 rounded"></div><div class="ud-skeleton h-3 w-32 rounded"></div></div>
+                        <div class="ud-skeleton h-6 w-20 rounded-full"></div>
+                        <div class="ud-skeleton h-4 w-14 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
+                <!-- ═══════════════════════════════════════════════ -->
 
                 <div id="view-browse" class="hidden space-y-6">
                     <div class="flex flex-col md:flex-row gap-4 justify-between">
@@ -1593,34 +1778,124 @@ function isSessionStillValid() {
         }
 
         // --- RENDER FUNCTIONS ---
-        function renderDashboard() {
-            const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-            document.getElementById('dash-total-spent').innerText = formatINR(totalSpent);
-            document.getElementById('dash-total-orders').innerText = orders.length;
-            document.getElementById('dash-total-wishlist').innerText = getVisibleWishlistCount(); 
-            document.getElementById('dash-total-cart').innerText = cart.length; 
-            document.getElementById('dash-total-livestock').innerText = livestock.length;
-            const recentContainer = document.getElementById('dash-recent-orders');
-            if (orders.length === 0) {
-                recentContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No orders yet.</p>';
-            } else {
-                const recent = orders.slice(0, 3);
-                recentContainer.innerHTML = recent.map(o => `
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-white dark:bg-gray-600 rounded flex items-center justify-center text-2xl border border-gray-100 dark:border-gray-500">📦</div>
-                            <div>
-                                <p class="font-bold text-gray-800 dark:text-gray-200">${o.items[0].name} ${o.items.length > 1 ? '+' + (o.items.length - 1) + ' more' : ''}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">#${String(o._id).slice(-6)} • ${o.date}</p>
-                            </div>
-                        </div>
-                        <div class="text-left sm:text-right w-full sm:w-auto flex justify-between sm:block pl-[3.25rem] sm:pl-0">
-                            <p class="font-bold text-gray-800 dark:text-white">${formatINR(o.total)}</p>
-                            <span class="text-xs px-2 py-1 ${getStatusColor(o.status)} rounded-full font-medium inline-block mt-1">${o.status}</span>
-                        </div>
-                    </div>
-                `).join('');
+        function udAnimateCount(elId, target, prefix='', suffix='') {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.innerHTML = '';
+            if (typeof target !== 'number') { el.textContent = prefix + target + suffix; return; }
+            const dur = 700, start = performance.now();
+            function tick(now) {
+                const p    = Math.min((now - start) / dur, 1);
+                const ease = 1 - Math.pow(1 - p, 3);
+                el.textContent = prefix + Math.round(target * ease).toLocaleString('en-IN') + suffix;
+                if (p < 1) requestAnimationFrame(tick);
+                else { el.textContent = prefix + target.toLocaleString('en-IN') + suffix; el.classList.add('ud-num-pop'); }
             }
+            requestAnimationFrame(tick);
+        }
+
+        function renderDashboard() {
+            const totalSpent    = orders.reduce((s, o) => s + (o.total || 0), 0);
+            const totalOrders   = orders.length;
+            const delivered     = orders.filter(o => o.status === 'Delivered').length;
+            const processing    = orders.filter(o => o.status === 'Processing').length;
+            const shipped       = orders.filter(o => o.status === 'Shipped').length;
+            const cancelled     = orders.filter(o => o.status === 'Cancelled' || o.status === 'Payment Rejected').length;
+            const wishlistCount = getVisibleWishlistCount();
+            const cartCount     = cart.length;
+            const lsCount       = livestock.length;
+            const userName      = currentUser?.name || 'there';
+
+            // Welcome banner
+            const nameEl = document.getElementById('ud-welcome-name');
+            const dateEl = document.getElementById('ud-greeting-date');
+            if (nameEl) nameEl.textContent = 'Welcome back, ' + userName.split(' ')[0] + '! 👋';
+            if (dateEl) {
+                const d = new Date();
+                dateEl.textContent = d.toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+            }
+
+            // Animate stat numbers
+            udAnimateCount('dash-total-orders',    totalOrders);
+            udAnimateCount('dash-total-wishlist',  wishlistCount);
+            udAnimateCount('dash-total-cart',      cartCount);
+            udAnimateCount('dash-total-livestock', lsCount);
+            udAnimateCount('dash-total-spent',     totalSpent, '₹');
+
+            // Order status donut
+            const CIRC = 220;
+            const activeArc    = totalOrders > 0 ? ((processing + shipped) / totalOrders) * CIRC : 0;
+            const deliveredArc = totalOrders > 0 ? (delivered / totalOrders) * CIRC : 0;
+            const donutActive    = document.getElementById('ud-donut-active');
+            const donutDelivered = document.getElementById('ud-donut-delivered');
+            const donutTotal     = document.getElementById('ud-donut-total');
+            if (donutActive)    donutActive.style.strokeDashoffset    = CIRC - activeArc;
+            if (donutDelivered) {
+                donutDelivered.style.strokeDashoffset = CIRC - deliveredArc;
+                donutDelivered.style.transform        = 'rotate(' + ((activeArc / CIRC) * 360) + 'deg)';
+                donutDelivered.style.transformOrigin  = '40px 40px';
+            }
+            if (donutTotal) donutTotal.textContent = totalOrders;
+
+            // Order legend
+            const legendEl = document.getElementById('ud-order-legend');
+            if (legendEl) {
+                if (totalOrders === 0) {
+                    legendEl.innerHTML = '<p class="text-xs text-gray-400">No orders yet</p>';
+                } else {
+                    const statuses = [
+                        { label:'Active',    count: processing + shipped, color:'text-emerald-600 dark:text-emerald-400', dot:'bg-emerald-500' },
+                        { label:'Delivered', count: delivered,            color:'text-indigo-600 dark:text-indigo-400',   dot:'bg-indigo-500' },
+                        { label:'Cancelled', count: cancelled,            color:'text-red-500 dark:text-red-400',         dot:'bg-red-400' },
+                    ];
+                    legendEl.innerHTML = statuses.map((s,i) => `
+                      <div class="flex items-center justify-between ud-row-enter" style="animation-delay:${i*60}ms">
+                        <div class="flex items-center gap-1.5">
+                          <span class="w-2 h-2 rounded-full ${s.dot} flex-shrink-0"></span>
+                          <span class="text-xs text-gray-500 dark:text-gray-400">${s.label}</span>
+                        </div>
+                        <span class="text-xs font-bold ${s.color}">${s.count}</span>
+                      </div>`).join('');
+                }
+            }
+
+            // Recent orders list
+            const recentEl = document.getElementById('dash-recent-orders');
+            if (!recentEl) return;
+            if (orders.length === 0) {
+                recentEl.innerHTML = `
+                  <div class="flex flex-col items-center justify-center py-10 text-center">
+                    <div class="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-2xl mb-3">📦</div>
+                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">No orders yet</p>
+                    <p class="text-xs text-gray-400 mt-1">Browse livestock to place your first order</p>
+                    <button onclick="router('browse')" class="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">Browse now →</button>
+                  </div>`;
+                return;
+            }
+            const recent = orders.slice(0, 5);
+            const statusColors = {
+                Processing:'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                Shipped:'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+                Delivered:'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+                Cancelled:'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+                'Payment Rejected':'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+            };
+            const gradients = ['from-blue-400 to-indigo-500','from-emerald-400 to-teal-500','from-orange-400 to-amber-500','from-fuchsia-400 to-purple-500','from-cyan-400 to-blue-500'];
+            recentEl.innerHTML = recent.map((o, i) => {
+                const sc  = statusColors[o.status] || 'bg-gray-100 text-gray-700';
+                const initials = (o.items?.[0]?.name || '??').slice(0,2).toUpperCase();
+                return `
+                <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors ud-row-enter" style="animation-delay:${i*65}ms">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br ${gradients[i%5]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">${initials}</div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">${o.items?.[0]?.name || '—'}${o.items?.length > 1 ? ' <span class="text-gray-400 font-normal text-xs">+' + (o.items.length-1) + ' more</span>' : ''}</p>
+                    <p class="text-xs text-gray-400">#${String(o._id).slice(-6)} · ${o.date || ''}</p>
+                  </div>
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${sc}">${o.status}</span>
+                  <span class="text-sm font-bold text-gray-700 dark:text-gray-200 flex-shrink-0">₹${(o.total||0).toLocaleString('en-IN')}</span>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
         }
         function filterCategory(cat) {
             currentCategory = cat;
