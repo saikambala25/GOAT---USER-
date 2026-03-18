@@ -481,6 +481,13 @@ app.put('/api/orders/:id/cancel', authMiddleware, async (req, res) => {
         // Remove hash so proof can be reused if order is cancelled
         await ProofHash.findOneAndDelete({ orderId: order._id });
 
+        // ✅ Notify admin dashboard about the cancellation
+        await AdminNotification.create({
+            message: `Order #${order._id.toString().slice(-6)} cancelled by ${req.user.name}. ${itemIds.length} item(s) restocked.`,
+            type: 'warning',
+            orderId: order._id
+        });
+
         res.json({ success: true, message: 'Order cancelled & items restocked' });
     } catch (err) {
         console.error('Cancel Error:', err);
