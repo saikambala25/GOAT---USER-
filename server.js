@@ -186,6 +186,65 @@ app.put('/api/user/state', authMiddleware, async (req, res) => {
     } catch (err) { res.status(400).json({ error: 'Failed to save state' }); }
 });
 
+// --- DEDICATED ADDRESS ROUTES ---
+// Save a new address (only if not already saved — deduped by name+phone+line1+pincode)
+app.post('/api/user/address', authMiddleware, async (req, res) => {
+    try {
+        const { label, name, line1, line2, city, state, pincode, phone } = req.body;
+        if (!name || !line1 || !city || !state || !pincode || !phone) {
+            return res.status(400).json({ message: 'Missing address fields' });
+        }
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Check for duplicate before pushing
+        const exists = user.addresses.some(a =>
+            a.name === name && a.phone === phone &&
+            a.line1 === line1 && a.pincode === pincode
+        );
+
+        if (!exists) {
+            const addressLabel = user.addresses.length === 0 ? 'Default' : `Address ${user.addresses.length + 1}`;
+            await User.findByIdAndUpdate(req.user.id, {
+                $push: { addresses: { label: label || addressLabel, name, line1, line2: line2 || '', city, state, pincode, phone } }
+            });
+            return res.json({ success: true, saved: true, message: 'Address saved' });
+        }
+        res.json({ success: true, saved: false, message: 'Address already saved' });
+    } catch (err) {
+        console.error('Save address error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete an address by index
+app.delete('/api/user/address/:index', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const idx = parseInt(req.params.index);
+        if (isNaN(idx) || idx < 0 || idx >= user.addresses.length) {
+            return res.status(400).json({ message: 'Invalid address index' });
+        }
+        user.addresses.splice(idx, 1);
+        await user.save();
+        res.json({ success: true, addresses: user.addresses });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get all saved addresses for the logged-in user
+app.get('/api/user/addresses', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id, 'addresses');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ addresses: user.addresses || [] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- LIVESTOCK ---
 app.get('/api/livestock', async (req, res) => {
     try { const livestock = await Livestock.find({}, '-image'); res.json(livestock); } catch (err) { res.status(500).json({ error: err.message }); }
@@ -456,7 +515,25 @@ app.post('/api/orders', authMiddleware, upload.single('paymentProof'), async (re
         if (itemIds.length > 0) {
             await Livestock.updateMany({ _id: { $in: itemIds } }, { $set: { status: 'Sold' } });
         }
-        await User.findByIdAndUpdate(req.user.id, { $set: { cart: [] } });
+        // Auto-save the delivery address to user's saved addresses (permanent)
+        if (address && address.name) {
+            const userDoc = await User.findById(req.user.id);
+            const addrExists = userDoc && userDoc.addresses.some(a =>
+                a.name === address.name && a.phone === address.phone &&
+                a.line1 === address.line1 && a.pincode === address.pincode
+            );
+            if (!addrExists) {
+                const addrLabel = (userDoc && userDoc.addresses.length === 0) ? 'Default' : `Address ${(userDoc ? userDoc.addresses.length : 0) + 1}`;
+                await User.findByIdAndUpdate(req.user.id, {
+                    $set: { cart: [] },
+                    $push: { addresses: { ...address, label: address.label || addrLabel } }
+                });
+            } else {
+                await User.findByIdAndUpdate(req.user.id, { $set: { cart: [] } });
+            }
+        } else {
+            await User.findByIdAndUpdate(req.user.id, { $set: { cart: [] } });
+        }
         
         res.status(201).json(newOrder);
     } catch (err) {
