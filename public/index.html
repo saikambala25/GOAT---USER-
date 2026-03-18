@@ -50,7 +50,7 @@
         .card-premium { transition: transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .35s; }
         .card-premium:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 18px 40px rgba(0,0,0,0.15); }
 
-        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s cubic-bezier(.2,.9,.2,1); }
+        .reveal { opacity: 0; transform: translateY(25px); transition: all .7s cubic-bezier(.2,.9,.2,1); }
         .reveal-visible { opacity: 1; transform: translateY(0); }
 
         .toast-anim { transform: translateX(20px); opacity: 0; animation: toastIn .4s forwards, toastOut .4s forwards 3s; }
@@ -2871,34 +2871,22 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         } catch(e){ console.error("animatePage error", e); }
       };
 
-      // Use #content-area as the scroll root so the observer fires correctly
-      // inside the inner scrollable div (not the window).
-      function makeRevealObserver() {
-        const root = document.getElementById('content-area') || null;
-        return new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("reveal-visible");
-              entry.target.revealObs && entry.target.revealObs.unobserve(entry.target);
-            }
-          });
-        }, { root: root, threshold: 0.05, rootMargin: "0px 0px 60px 0px" });
-      }
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal-visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.18 });
 
       window.applyRevealAndPremium = function(){
         try {
           const grid = document.getElementById('livestock-grid');
           if(!grid) return;
-          // Build a fresh observer each time so the root is available
-          const obs = makeRevealObserver();
           Array.from(grid.children).forEach(el => {
-            // Remove old reveal state so cards don't get stuck hidden on re-render
-            el.classList.remove('reveal', 'reveal-visible');
-            el.classList.add('card-premium');
-            void el.offsetWidth; // force reflow
-            el.classList.add('reveal');
-            el.revealObs = obs;
-            obs.observe(el);
+            el.classList.add('reveal','card-premium');
+            revealObserver.observe(el);
           });
         } catch(e){ console.error("applyReveal error", e); }
       };
