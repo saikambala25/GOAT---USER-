@@ -1140,7 +1140,7 @@
     </div>
     
     <script>
-        const API_URL = 'https://goat-user-alpha.vercel.app/api';
+        const API_URL = 'https://goat-user.vercel.app/api';
         let livestock = [];
         let orders = [];
         let cart = []; 
@@ -3605,7 +3605,52 @@ setLang("en");
 </script>
 
 
-    <!-- Old install button removed - using goat icon PWA instead -->
+    <script>
+      let deferredPrompt;
+      const installBtn = document.createElement('button');
+      installBtn.textContent = '📲 Install App';
+      installBtn.style.display = 'none';
+      installBtn.style.position = 'fixed';
+      installBtn.style.bottom = '20px';
+      installBtn.style.right = '20px';
+      installBtn.style.padding = '10px 20px';
+      installBtn.style.backgroundColor = '#4CAF50';
+      installBtn.style.color = 'white';
+      installBtn.style.border = 'none';
+      installBtn.style.borderRadius = '5px';
+      installBtn.style.zIndex = '1000';
+      installBtn.style.cursor = 'pointer';
+      document.body.appendChild(installBtn);
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('Service Worker registered'))
+            .catch(err => console.log('Service Worker Error:', err));
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response: ${outcome}`);
+          deferredPrompt = null;
+          installBtn.style.display = 'none';
+        }
+      });
+
+      window.addEventListener('appinstalled', () => {
+        installBtn.style.display = 'none';
+        console.log('PWA installed');
+      });
+    </script>
     
 
 
@@ -3618,7 +3663,34 @@ setLang("en");
 <script>
 (function () {
   /* ── Inline Web App Manifest (blob URL — no extra files needed) ────── */
-  // Using GOAT icon for PWA installation
+  const iconSvgLarge = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#000000"/>
+        <stop offset="100%" style="stop-color:#064e3b"/>
+      </linearGradient>
+      <linearGradient id="circle" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#10b981"/>
+        <stop offset="100%" style="stop-color:#059669"/>
+      </linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="102" fill="url(#bg)"/>
+    <circle cx="256" cy="230" r="155" fill="url(#circle)" opacity=".95"/>
+    <text x="256" y="300" text-anchor="middle" fill="white"
+      font-size="190" font-weight="900" font-family="system-ui,sans-serif">L</text>
+    <text x="256" y="420" text-anchor="middle" fill="rgba(255,255,255,.55)"
+      font-size="52" font-family="system-ui,sans-serif">LivestockMart</text>
+  </svg>`;
+
+  const iconSvgSmall = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+    <rect width="192" height="192" rx="38" fill="#064e3b"/>
+    <circle cx="96" cy="96" r="70" fill="#10b981"/>
+    <text x="96" y="122" text-anchor="middle" fill="white"
+      font-size="88" font-weight="900" font-family="system-ui,sans-serif">L</text>
+  </svg>`;
+
+  const enc = s => 'data:image/svg+xml,' + encodeURIComponent(s);
+
   const manifest = {
     name: 'LivestockMart',
     short_name: 'LivestockMart',
@@ -3630,7 +3702,8 @@ setLang("en");
     theme_color: '#10b981',
     categories: ['shopping', 'lifestyle'],
     icons: [
-      { src: 'goat-icon.jpg', sizes: '512x512', type: 'image/jpeg', purpose: 'any' }
+      { src: enc(iconSvgSmall), sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+      { src: enc(iconSvgLarge), sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
     ],
     shortcuts: [
       { name: 'Browse Livestock', short_name: 'Browse',   url: './#home',    description: 'Browse all livestock' },
