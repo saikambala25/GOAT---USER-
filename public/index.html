@@ -571,7 +571,7 @@
                 <button onclick="router('about')" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                     <i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i> <span class="lang-about">About</span>
                 </button>
-                <button id="pwa-sidebar-static-btn" onclick="if(window._lmDeferredPrompt){window._lmDeferredPrompt.prompt();window._lmDeferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted'){document.getElementById('pwa-sidebar-static-btn').remove();if(typeof showToast==='function')showToast('App installed! 🎉','success');}});}" class="w-full flex items-center gap-3 px-4 py-3 text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-semibold">
+                <button id="pwa-sidebar-btn" onclick="triggerPWAInstall()" class="w-full flex items-center gap-3 px-4 py-3 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors font-semibold">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Install App
                 </button>
@@ -3846,8 +3846,7 @@ self.addEventListener('notificationclick', e => {
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredPrompt = e;
-    window._lmDeferredPrompt = e; // expose for sidebar static button
-    // Auto popup disabled — install available from sidebar
+    // No auto popup — Install available via sidebar button only
   });
 
   /* iOS Safari: show manual guide ── */
@@ -3859,15 +3858,15 @@ self.addEventListener('notificationclick', e => {
         iosHint.style.display = iosHint.style.display === 'none' ? 'block' : 'none';
       };
     }
-    // Auto popup disabled on iOS too — install guide accessible from sidebar
+    // No auto popup on iOS — Install guide accessible via sidebar
   }
 
   /* After install event ── */
   window.addEventListener('appinstalled', onInstalled);
 
-  /* ── Install App button is now static in sidebar HTML below About ──── */
+  /* ── Install App button is static in sidebar HTML (below About) ──── */
   window.addEventListener('appinstalled', () => {
-    const b = document.getElementById('pwa-sidebar-static-btn');
+    const b = document.getElementById('pwa-sidebar-btn');
     if (b) b.remove();
   });
 
