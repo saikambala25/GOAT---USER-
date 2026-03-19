@@ -283,11 +283,55 @@
 <!-- ═══════════════════════════════════════════
      PWA INSTALL BANNER
 ═══════════════════════════════════════════ -->
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;font-family:'Inter',system-ui,sans-serif;">
+  <!-- Backdrop blur strip -->
+  <div style="background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(6,78,59,0.97) 100%);border-top:1px solid rgba(16,185,129,0.3);box-shadow:0 -8px 40px rgba(16,185,129,0.2);padding:14px 16px 28px;">
+    <div style="max-width:500px;margin:0 auto;">
 
+      <!-- Main row -->
+      <div style="display:flex;align-items:center;gap:12px;">
+
+        <!-- App icon -->
+        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#10b981,#064e3b);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,0.45);border:1.5px solid rgba(16,185,129,0.4);">
+          <span style="color:white;font-size:26px;font-weight:900;line-height:1;">L</span>
+        </div>
+
+        <!-- Text -->
+        <div style="flex:1;min-width:0;">
+          <p style="margin:0;color:#fff;font-weight:700;font-size:14px;line-height:1.3;">LivestockMart</p>
+          <p style="margin:3px 0 0;color:rgba(255,255,255,0.6);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Add to Home Screen for the best experience</p>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button id="pwa-install-btn" onclick="triggerPWAInstall()"
+            style="background:#10b981;color:#fff;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(16,185,129,0.5);transition:transform .15s,opacity .15s;white-space:nowrap;"
+            onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+            Install ↓
+          </button>
+          <button onclick="dismissPWABanner()"
+            style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);padding:10px 11px;border-radius:12px;font-size:16px;line-height:1;cursor:pointer;transition:background .15s;"
+            onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- iOS step hint (shown only on iOS) -->
+      <div id="pwa-ios-hint" style="display:none;margin-top:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:9px 12px;text-align:center;">
+        <p style="margin:0;color:rgba(255,255,255,0.88);font-size:12px;">
+          Tap <strong style="color:#10b981;">Share</strong> <span style="font-size:15px;">⬆️</span> then <strong style="color:#10b981;">"Add to Home Screen"</strong> <span style="font-size:15px;">➕</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- Installed success chip -->
-
+<div id="pwa-installed-chip" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 20px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 4px 20px rgba(16,185,129,0.5);animation:chipPop .45s cubic-bezier(.34,1.56,.64,1) both;">
+  ✓ App Installed!
+</div>
 
 <style>
 @keyframes chipPop   { from{opacity:0;transform:translateX(-50%) scale(.6)} to{opacity:1;transform:translateX(-50%) scale(1)} }
@@ -526,20 +570,6 @@
                 </button>
                 <button onclick="router('about')" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                     <i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i> <span class="lang-about">About</span>
-                </button>
-                <!-- PWA Install App -->
-                <button id="pwa-sidebar-install-btn" onclick="pwaSidebarInstall()"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-                    style="background:linear-gradient(90deg,rgba(16,185,129,0.09),transparent);border:1px solid rgba(16,185,129,0.18);">
-                    <img src="IMG_20251229_120150.jpg"
-                         class="w-6 h-6 rounded-md object-cover flex-shrink-0"
-                         style="border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 6px rgba(0,0,0,0.3);"
-                         alt="Install">
-                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold text-sm">Install App</span>
-                    <svg class="w-4 h-4 ml-auto text-emerald-500 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
                 </button>
             </nav>
         </aside>
@@ -3575,52 +3605,7 @@ setLang("en");
 </script>
 
 
-    <script>
-      let deferredPrompt;
-      const installBtn = document.createElement('button');
-      installBtn.textContent = '📲 Install App';
-      installBtn.style.display = 'none';
-      installBtn.style.position = 'fixed';
-      installBtn.style.bottom = '20px';
-      installBtn.style.right = '20px';
-      installBtn.style.padding = '10px 20px';
-      installBtn.style.backgroundColor = '#4CAF50';
-      installBtn.style.color = 'white';
-      installBtn.style.border = 'none';
-      installBtn.style.borderRadius = '5px';
-      installBtn.style.zIndex = '1000';
-      installBtn.style.cursor = 'pointer';
-      document.body.appendChild(installBtn);
-
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker.js')
-            .then(reg => console.log('Service Worker registered'))
-            .catch(err => console.log('Service Worker Error:', err));
-        });
-      }
-
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'block';
-      });
-
-      installBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log(`User response: ${outcome}`);
-          deferredPrompt = null;
-          installBtn.style.display = 'none';
-        }
-      });
-
-      window.addEventListener('appinstalled', () => {
-        installBtn.style.display = 'none';
-        console.log('PWA installed');
-      });
-    </script>
+    <!-- Old install button removed - using goat icon PWA instead -->
     
 
 
@@ -3630,31 +3615,11 @@ setLang("en");
 <!-- ═══════════════════════════════════════════════════
      PWA: MANIFEST · SERVICE WORKER · INSTALL LOGIC
 ═══════════════════════════════════════════════════ -->
-
-<!-- ══════════════════════════════════════════════════════════ -->
-
-
-<!-- ====== PWA: MANIFEST + SERVICE WORKER + INSTALL ====== -->
 <script>
-(function(){
-  'use strict';
-
-  /* 1. Manifest — SVG icon keeps PWA install reliable (no giant base64) */
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'
-    + '<rect width="512" height="512" rx="96" fill="#064e3b"/>'
-    + '<circle cx="256" cy="210" r="148" fill="#f59e0b"/>'
-    + '<circle cx="256" cy="210" r="126" fill="#111"/>'
-    + '<text x="256" y="172" text-anchor="middle" fill="#fff" '
-    +   'font-size="70" font-weight="900" font-family="Arial,sans-serif">G.O.A.T</text>'
-    + '<text x="256" y="238" text-anchor="middle" fill="#f59e0b" '
-    +   'font-size="25" font-family="Arial,sans-serif">GREATEST OF ALL TIME</text>'
-    + '<text x="256" y="400" text-anchor="middle" fill="rgba(255,255,255,.45)" '
-    +   'font-size="36" font-family="Arial,sans-serif">LivestockMart</text>'
-    + '</svg>';
-
-  var svgURL = 'data:image/svg+xml,' + encodeURIComponent(svg);
-
-  var manifest = {
+(function () {
+  /* ── Inline Web App Manifest (blob URL — no extra files needed) ────── */
+  // Using GOAT icon for PWA installation
+  const manifest = {
     name: 'LivestockMart',
     short_name: 'LivestockMart',
     description: 'Buy Quality Livestock Online',
@@ -3663,140 +3628,232 @@ setLang("en");
     orientation: 'portrait',
     background_color: '#000000',
     theme_color: '#10b981',
-    categories: ['shopping','lifestyle'],
+    categories: ['shopping', 'lifestyle'],
     icons: [
-      {src:svgURL, sizes:'192x192', type:'image/svg+xml', purpose:'any maskable'},
-      {src:svgURL, sizes:'512x512', type:'image/svg+xml', purpose:'any maskable'}
+      { src: 'goat-icon.jpg', sizes: '512x512', type: 'image/jpeg', purpose: 'any' }
     ],
     shortcuts: [
-      {name:'Browse Livestock', short_name:'Browse',  url:'./#browse',  description:'Browse livestock'},
-      {name:'My Orders',        short_name:'Orders',  url:'./#orders',  description:'My orders'},
-      {name:'My Cart',          short_name:'Cart',    url:'./#cart',    description:'My cart'},
-      {name:'My Profile',       short_name:'Profile', url:'./#profile', description:'My account'}
-    ]
+      { name: 'Browse Livestock', short_name: 'Browse',   url: './#home',    description: 'Browse all livestock' },
+      { name: 'My Orders',        short_name: 'Orders',   url: './#orders',  description: 'View my orders' },
+      { name: 'My Cart',          short_name: 'Cart',     url: './#cart',    description: 'View cart' },
+      { name: 'My Profile',       short_name: 'Profile',  url: './#profile', description: 'My account' }
+    ],
+    screenshots: []
   };
 
-  try {
-    var ml = document.getElementById('pwa-manifest-link');
-    if (ml) ml.href = URL.createObjectURL(
-      new Blob([JSON.stringify(manifest)], {type:'application/json'})
+  const mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const mURL  = URL.createObjectURL(mBlob);
+  const mLink = document.getElementById('pwa-manifest-link');
+  if (mLink) mLink.href = mURL;
+
+  /* ── Inline Service Worker ─────────────────────────────────────────── */
+  const SW_CACHE = 'lm-user-v1';
+
+  const swCode = `
+const CACHE = '${SW_CACHE}';
+
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll([])));
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    Promise.all([
+      clients.claim(),
+      caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      )
+    ])
+  );
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+
+  // Always go to network for API calls
+  if (url.pathname.includes('/admin/') || url.pathname.includes('/user/') ||
+      url.pathname.includes('/livestock') || url.pathname.includes('/orders')) {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
     );
-  } catch(e) { console.warn('[PWA] manifest:', e); }
+    return;
+  }
 
-  /* 2. Inline Service Worker */
+  // Cache-first for static assets
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      const net = fetch(e.request).then(res => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        }
+        return res;
+      }).catch(() => cached);
+      return cached || net;
+    })
+  );
+});
+
+self.addEventListener('push', e => {
+  if (!e.data) return;
+  const data = e.data.json();
+  self.registration.showNotification(data.title || 'LivestockMart', {
+    body: data.body || 'New update available',
+    icon: data.icon || '',
+    badge: data.badge || '',
+    data: { url: data.url || '/' }
+  });
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow(e.notification.data.url));
+});
+  `;
+
   if ('serviceWorker' in navigator) {
-    var sw = "const C='lm-v3';"
-      + "const API=['livestock','orders','user/','auth','cart','wishlist','notifications'];"
-      + "self.addEventListener('install',()=>self.skipWaiting());"
-      + "self.addEventListener('activate',e=>e.waitUntil(Promise.all([clients.claim(),"
-      + "  caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k))))])));"
-      + "self.addEventListener('fetch',e=>{"
-      + "  if(e.request.method!=='GET')return;"
-      + "  const p=new URL(e.request.url).pathname;"
-      + "  if(API.some(a=>p.includes(a))){e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));return;}"
-      + "  e.respondWith(caches.match(e.request).then(c=>{"
-      + "    const n=fetch(e.request).then(r=>{if(r&&r.status===200&&r.type==='basic')"
-      + "      caches.open(C).then(cc=>cc.put(e.request,r.clone()));return r;}).catch(()=>c);"
-      + "    return c||n;"
-      + "  }));"
-      + "});"
-      + "self.addEventListener('push',e=>{if(!e.data)return;const d=e.data.json();"
-      + "  self.registration.showNotification(d.title||'LivestockMart',{body:d.body||'',icon:d.icon||'',data:{url:d.url||'/'}});});"
-      + "self.addEventListener('notificationclick',e=>{e.notification.close();"
-      + "  e.waitUntil(clients.openWindow(e.notification.data.url));});";
-    try {
-      navigator.serviceWorker
-        .register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'})),{scope:'./'})
-        .then(function(reg){
-          reg.addEventListener('updatefound',function(){
-            reg.installing.addEventListener('statechange',function(){
-              if(this.state==='installed'&&navigator.serviceWorker.controller)
-                if(typeof showToast==='function') showToast('Update available \u2014 refresh','info');
-            });
+    const swBlob = new Blob([swCode], { type: 'text/javascript' });
+    const swURL  = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL, { scope: './' })
+      .then(reg => {
+        console.log('[PWA] SW registered:', reg.scope);
+        reg.addEventListener('updatefound', () => {
+          const w = reg.installing;
+          w.addEventListener('statechange', () => {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner();
+            }
           });
-        }).catch(function(e){ console.warn('[PWA] SW:',e); });
-    } catch(e){ console.warn('[PWA] SW setup:',e); }
+        });
+      })
+      .catch(err => console.warn('[PWA] SW failed:', err));
   }
 
-  /* 3. Install logic — sidebar button only, NO banner popup */
-  var prompt = null;
-  var isIOS        = function(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); };
-  var isStandalone = function(){ return window.matchMedia('(display-mode:standalone)').matches || !!navigator.standalone; };
-  var wasInstalled = function(){ return localStorage.getItem('lm_pwa_installed')==='1'; };
+  /* ── Install Banner Logic ───────────────────────────────────────────── */
+  let deferredPrompt = null;
+  const banner        = document.getElementById('pwa-install-banner');
+  const installBtn    = document.getElementById('pwa-install-btn');
+  const iosHint       = document.getElementById('pwa-ios-hint');
+  const installedChip = document.getElementById('pwa-installed-chip');
 
-  function hideSidebarBtn(){
-    var b = document.getElementById('pwa-sidebar-install-btn');
-    if (b) b.style.display = 'none';
+  const isIOS       = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone= () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const wasDismissed= () => localStorage.getItem('lm_pwa_dismissed') === '1';
+  const wasInstalled= () => localStorage.getItem('lm_pwa_installed') === '1';
+
+  function showBanner() {
+    if (!banner || wasDismissed() || isStandalone()) return;
+    banner.style.display = 'block';
+    banner.style.animation = 'pwaSlideUp .45s cubic-bezier(.22,.68,0,1.2) both';
   }
 
-  /* iOS tap-tip near sidebar button */
-  function showIOSGuide(){
-    var old = document.getElementById('lm-ios-tip');
-    if (old) { old.remove(); return; }
-    var tip = document.createElement('div');
-    tip.id = 'lm-ios-tip';
-    tip.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;z-index:99999;'
-      + 'background:linear-gradient(135deg,#064e3b,#000);color:#fff;padding:14px 16px;'
-      + 'border-radius:14px;font-size:13px;line-height:1.5;text-align:center;'
-      + 'box-shadow:0 8px 32px rgba(0,0,0,0.6);border:1px solid rgba(16,185,129,0.4);';
-    tip.innerHTML = '<div style="font-weight:700;color:#10b981;margin-bottom:6px;">Install on iPhone / iPad</div>'
-      + '<div>Tap <strong>Share &#8679;</strong> in Safari then tap <strong>\'Add to Home Screen\' &#10010;</strong></div>'
-      + '<button onclick="document.getElementById(\'lm-ios-tip\').remove()" '
-      + 'style="margin-top:10px;background:rgba(255,255,255,0.15);border:none;color:#fff;'
-      + 'padding:6px 20px;border-radius:8px;cursor:pointer;font-size:12px;">Got it</button>';
-    document.body.appendChild(tip);
-    setTimeout(function(){ if(tip.parentNode) tip.remove(); }, 9000);
-  }
-
-  window.pwaSidebarInstall = function(){
-    if (isIOS()) { showIOSGuide(); return; }
-    if (prompt) {
-      prompt.prompt();
-      prompt.userChoice.then(function(r){
-        prompt = null;
-        if (r.outcome === 'accepted') onInstalled();
-      });
-    } else if (isStandalone()) {
-      if (typeof showToast === 'function') showToast('App is already installed! \u2713','success');
+  function hideBanner(animate) {
+    if (!banner) return;
+    if (animate) {
+      banner.style.animation = 'pwaSlideDown .3s ease both';
+      setTimeout(() => { banner.style.display = 'none'; }, 320);
     } else {
-      if (typeof showToast === 'function')
-        showToast('Use browser menu \u2192 "Add to Home Screen" to install','info');
+      banner.style.display = 'none';
+    }
+  }
+
+  window.triggerPWAInstall = async function () {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if (outcome === 'accepted') onInstalled();
+      else dismissPWABanner();
     }
   };
 
-  function onInstalled(){
-    localStorage.setItem('lm_pwa_installed','1');
-    hideSidebarBtn();
-    if (typeof showToast === 'function') showToast('LivestockMart installed! \uD83C\uDF89','success');
-    var badge = document.createElement('div');
-    badge.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);'
-      + 'z-index:99999;display:flex;align-items:center;gap:8px;background:#10b981;color:#fff;'
-      + 'padding:9px 18px 9px 10px;border-radius:999px;font-size:13px;font-weight:700;'
-      + 'box-shadow:0 4px 20px rgba(16,185,129,0.5);white-space:nowrap;'
-      + 'animation:_lmChip .4s cubic-bezier(.34,1.56,.64,1) both;';
-    badge.innerHTML = '<img src="IMG_20251229_120150.jpg" '
-      + 'style="width:26px;height:26px;border-radius:6px;object-fit:cover;"> App Installed \u2713';
-    var s = document.createElement('style');
-    s.textContent = '@keyframes _lmChip{'
-      + 'from{opacity:0;transform:translateX(-50%) scale(.4)}'
-      + 'to{opacity:1;transform:translateX(-50%) scale(1)}}';
-    document.head.appendChild(s);
-    document.body.appendChild(badge);
-    setTimeout(function(){ badge.remove(); }, 3500);
+  window.dismissPWABanner = function () {
+    hideBanner(true);
+    localStorage.setItem('lm_pwa_dismissed', '1');
+  };
+
+  function onInstalled() {
+    hideBanner(false);
+    localStorage.setItem('lm_pwa_installed', '1');
+    if (installedChip) {
+      installedChip.style.display = 'block';
+      setTimeout(() => { installedChip.style.display = 'none'; }, 3500);
+    }
+    // Use existing showToast if available
+    if (typeof showToast === 'function') showToast('App installed! 🎉', 'success');
+    // Remove sidebar install button
+    const sib = document.getElementById('pwa-sidebar-btn');
+    if (sib) sib.remove();
   }
 
-  window.addEventListener('beforeinstallprompt', function(e){
+  function showUpdateBanner() {
+    if (typeof showToast === 'function') showToast('New update available — refresh to apply', 'info');
+  }
+
+  /* Chrome / Edge / Samsung: beforeinstallprompt ── */
+  window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
-    prompt = e;
+    deferredPrompt = e;
+    if (!wasDismissed() && !isStandalone()) {
+      setTimeout(showBanner, 3000); // slight delay after page loads
+    }
   });
+
+  /* iOS Safari: show manual guide ── */
+  if (isIOS() && !isStandalone() && !wasDismissed()) {
+    if (iosHint) iosHint.style.display = 'block';
+    if (installBtn) {
+      installBtn.textContent = 'How to Install';
+      installBtn.onclick = () => {
+        iosHint.style.display = iosHint.style.display === 'none' ? 'block' : 'none';
+      };
+    }
+    setTimeout(showBanner, 3000);
+  }
+
+  /* After install event ── */
   window.addEventListener('appinstalled', onInstalled);
 
-  if (isStandalone() || wasInstalled()) {
-    document.addEventListener('DOMContentLoaded', hideSidebarBtn);
-  }
+  /* ── Add "Install App" button to bottom nav / sidebar ──────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    if (isStandalone() || wasInstalled()) return;
+
+    // Try to add to bottom nav bar if it exists
+    const bottomNav = document.querySelector('nav[class*="bottom"]') ||
+                      document.querySelector('.bottom-nav') ||
+                      document.getElementById('bottom-nav');
+
+    // Or add a floating Install button inside the sidebar/menu
+    const sidebar = document.getElementById('sidebar') ||
+                    document.querySelector('aside');
+
+    if (sidebar) {
+      const btn = document.createElement('button');
+      btn.id = 'pwa-sidebar-btn';
+      btn.style.cssText = 'width:100%;display:flex;align-items:center;gap:10px;padding:10px 16px;margin:4px 0;background:linear-gradient(90deg,rgba(16,185,129,.15),transparent);border:1px solid rgba(16,185,129,.25);border-radius:12px;color:#10b981;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;';
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Install App';
+      btn.onmouseover = () => btn.style.background = 'rgba(16,185,129,.22)';
+      btn.onmouseout  = () => btn.style.background = 'linear-gradient(90deg,rgba(16,185,129,.15),transparent)';
+      btn.onclick = () => {
+        if (deferredPrompt) triggerPWAInstall();
+        else showBanner();
+      };
+
+      // Insert near the bottom of sidebar nav
+      const nav = sidebar.querySelector('nav') || sidebar;
+      nav.appendChild(btn);
+    }
+
+    window.addEventListener('appinstalled', () => {
+      const b = document.getElementById('pwa-sidebar-btn');
+      if (b) b.remove();
+    });
+  });
+
 })();
 </script>
-<!-- ======================================================= -->
+<!-- ══════════════════════════════════════════════════════════ -->
 
 </body>
 </html>
