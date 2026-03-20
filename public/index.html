@@ -1519,17 +1519,21 @@ function isSessionStillValid() {
             const auth = document.getElementById('auth-screen');
             const app = document.getElementById('user-app');
             if (auth) auth.classList.add('hidden');
-            if (app) app.classList.remove('hidden');
             removeAuthLoadingOverlay();
+
+            // Step 1: render content into the DOM while user-app is still hidden
             if (!appInitialized) {
-                initApp();
+                initApp();  // renders dashboard, sets up everything
             }
-            // Keep splash on top while the browser paints the dashboard.
-            // Wait for rAF → rAF → 120ms buffer to ensure all Tailwind/dark-mode
-            // styles and the dashboard grid are visually painted before fade-out.
+
+            // Step 2: wait for the browser to fully paint the hidden content,
+            // then reveal app + dismiss splash in the same frame — zero blank screen
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    setTimeout(() => window._splashDone(), 120);
+                    setTimeout(() => {
+                        if (app) app.classList.remove('hidden');
+                        window._splashDone(); // fade splash while app is already painted
+                    }, 80);
                 });
             });
         }
