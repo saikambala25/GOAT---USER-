@@ -1933,27 +1933,36 @@ function isSessionStillValid() {
             const isBaselineInitialized = previousLivestockCount > 0 || JSON.parse(previousOrdersSnapshot).length > 0;
             
             try {
-                const lsRes = await fetch(`${API_URL}/livestock?_=${Date.now()}`);
+                // ── PARALLEL FETCH: livestock + orders + notifications all at once ──
+                const lsPromise   = fetch(`${API_URL}/livestock?_=${Date.now()}`);
+                const ordPromise  = currentUser
+                    ? fetch(`${API_URL}/orders?_=${Date.now()}`, { method: 'GET', credentials: 'include' })
+                    : Promise.resolve(null);
+                const notifPromise = fetch(`${API_URL}/notifications?_=${Date.now()}`).catch(() => null);
+
+                const [lsRes, ordRes, notifRes] = await Promise.all([lsPromise, ordPromise, notifPromise]);
+
+                // Process livestock
                 fetchedLivestock = await lsRes.json();
                 fetchedLivestock.sort((a, b) => (a._id < b._id) ? 1 : -1);
-                
+
+                // Process notifications (non-critical — ignore failures)
                 try {
-                     const notifRes = await fetch(`${API_URL}/notifications?_=${Date.now()}`);
-                     if (notifRes.ok) {
-                         const fetchedNotifs = await notifRes.json();
-                         let newNotifFound = false;
-                         fetchedNotifs.forEach(fn => {
-                             if(!notifications.some(n => n.id === fn.id)) {
-                                 notifications.push(fn);
-                                 newNotifFound = true;
-                             }
-                         });
-                         if(newNotifFound) {
-                             notifSound.play().catch(()=>{});
-                             const last = notifications[notifications.length-1];
-                             showToast(last.message, last.color === 'red' ? 'error' : 'info');
-                         }
-                     }
+                    if (notifRes && notifRes.ok) {
+                        const fetchedNotifs = await notifRes.json();
+                        let newNotifFound = false;
+                        fetchedNotifs.forEach(fn => {
+                            if (!notifications.some(n => n.id === fn.id)) {
+                                notifications.push(fn);
+                                newNotifFound = true;
+                            }
+                        });
+                        if (newNotifFound) {
+                            notifSound.play().catch(() => {});
+                            const last = notifications[notifications.length - 1];
+                            showToast(last.message, last.color === 'red' ? 'error' : 'info');
+                        }
+                    }
                 } catch(e) { }
 
                 if (isBaselineInitialized && fetchedLivestock.length > previousLivestockCount) {
@@ -1969,8 +1978,8 @@ function isSessionStillValid() {
                     });
                 }
                 
-                if (currentUser) {
-                    const ordRes = await fetch(`${API_URL}/orders?_=${Date.now()}`, { method: 'GET', credentials: 'include' });
+                // Process orders
+                if (currentUser && ordRes) {
                     fetchedOrders = await ordRes.json();
                     fetchedOrders.sort((a,b) => (a._id < b._id) ? 1 : -1); 
 
@@ -2054,8 +2063,6 @@ function isSessionStillValid() {
                 }
             });
 
-            loadData();
-            
             // Handle view switching
             ['dashboard', 'browse', 'cart', 'orders', 'wishlist', 'addresses', 'profile', 'support', 'summary', 'about'].forEach(v => {
                 document.getElementById(`view-${v}`)?.classList.add('hidden');
@@ -2084,10 +2091,12 @@ function isSessionStillValid() {
                 overlay.classList.add('hidden');
             }
             
+            // Dashboard: showDashboardWithLoader owns loadData() internally.
+            // All other views: call loadData() once, then render from fresh data.
             if (viewName === 'dashboard') showDashboardWithLoader();
-            if (viewName === 'browse') renderBrowse();
+            if (viewName === 'browse') { loadData().then(() => renderBrowse()); }
             if (viewName === 'cart') renderCart();
-            if (viewName === 'orders') renderOrders();
+            if (viewName === 'orders') { loadData().then(() => renderOrders()); }
             if (viewName === 'wishlist') renderWishlist();
             if (viewName === 'addresses') renderAddresses();
             
@@ -2112,42 +2121,48 @@ function isSessionStillValid() {
             requestAnimationFrame(tick);
         }
 
-        // ── Dashboard loader: shows dots animation, then reveals content ──────────
-        let _dashLoaderTimer = null;
+        // ── Dashboard loader: stays visible until BOTH the animation AND the data are ready ──
+        let _dashLoaderActive = false;
         function showDashboardWithLoader() {
-            const loader  = document.getElementById('dashboard-loader');
+            const loader      = document.getElementById('dashboard-loader');
             const dashContent = document.getElementById('dashboard-content');
             if (!loader || !dashContent) { renderDashboard(); return; }
 
+            // Prevent double-invocation on rapid tab switches
+            if (_dashLoaderActive) return;
+            _dashLoaderActive = true;
+
             // Show loader, hide content
             loader.classList.remove('hidden');
+            loader.style.opacity = '1';
+            loader.style.transition = '';
             dashContent.style.opacity = '0';
             dashContent.style.pointerEvents = 'none';
 
-            // Cancel any previous pending timer
-            if (_dashLoaderTimer) clearTimeout(_dashLoaderTimer);
+            // Race: wait for BOTH a minimum animation time (800ms) AND the actual data.
+            // Whichever finishes last wins — so the loader never hides before data arrives,
+            // and the animation always plays long enough not to flash.
+            const minAnimTime = new Promise(resolve => setTimeout(resolve, 800));
+            const dataReady   = loadData(); // loadData() is async — returns a Promise
 
-            // Wait for dots animation to play (1.4 s feels natural)
-            _dashLoaderTimer = setTimeout(() => {
-                // Render data while still invisible
-                renderDashboard();
+            Promise.all([minAnimTime, dataReady])
+                .catch(err => console.error('Dashboard load error:', err))
+                .finally(() => {
+                    // Data is in — render, then reveal
+                    renderDashboard();
 
-                // Fade out loader
-                loader.style.transition = 'opacity .35s ease';
-                loader.style.opacity = '0';
+                    loader.style.transition = 'opacity .35s ease';
+                    loader.style.opacity = '0';
 
-                setTimeout(() => {
-                    loader.classList.add('hidden');
-                    loader.style.opacity = '';
-                    loader.style.transition = '';
-
-                    // Fade in dashboard content
-                    dashContent.style.opacity = '1';
-                    dashContent.style.pointerEvents = '';
-                }, 370);
-
-                _dashLoaderTimer = null;
-            }, 1400);
+                    setTimeout(() => {
+                        loader.classList.add('hidden');
+                        loader.style.opacity = '';
+                        loader.style.transition = '';
+                        dashContent.style.opacity = '1';
+                        dashContent.style.pointerEvents = '';
+                        _dashLoaderActive = false;
+                    }, 370);
+                });
         }
 
         function renderDashboard() {
