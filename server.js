@@ -46,9 +46,21 @@ async function connectDB() {
     if (cached.conn) return cached.conn;
     if (!cached.promise) {
         const opts = { bufferCommands: false, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000 };
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-            console.log('âœ… New MongoDB Connection Established');
-            return mongoose;
+        cached.promise = mongoose.connect(MONGODB_URI, opts).then(async (mongooseInstance) => {
+            console.log('✅ New MongoDB Connection Established');
+            // Ensure indexes exist for fast queries (idempotent — safe to run on every cold start)
+            try {
+                await Promise.all([
+                    mongooseInstance.connection.collection('livestocks').createIndex({ status: 1, createdAt: -1 }),
+                    mongooseInstance.connection.collection('orders').createIndex({ userId: 1, createdAt: -1 }),
+                    mongooseInstance.connection.collection('orders').createIndex({ status: 1, createdAt: -1 }),
+                    mongooseInstance.connection.collection('adminnotifications').createIndex({ createdAt: -1 }),
+                ]);
+                console.log('✅ DB indexes verified');
+            } catch (idxErr) {
+                console.warn('⚠️ Index creation skipped:', idxErr.message);
+            }
+            return mongooseInstance;
         });
     }
     try { cached.conn = await cached.promise; } catch (e) { cached.promise = null; throw e; }
@@ -188,7 +200,10 @@ app.put('/api/user/state', authMiddleware, async (req, res) => {
 
 // --- LIVESTOCK ---
 app.get('/api/livestock', async (req, res) => {
-    try { const livestock = await Livestock.find({}, '-image'); res.json(livestock); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const livestock = await Livestock.find({}, '-image -images').lean();
+        res.json(livestock);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/livestock/image/:id', async (req, res) => {
@@ -215,7 +230,7 @@ app.get('/api/livestock/image/:id/:index', async (req, res) => {
 
 // --- ADMIN ROUTES ---
 app.get('/api/admin/livestock', async (req, res) => {
-    try { const livestock = await Livestock.find({}, '-image').sort({ createdAt: -1 }); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
+    try { const livestock = await Livestock.find({}, '-image -images').sort({ createdAt: -1 }).lean(); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
 });
 
 // ðŸŸ¢ FIX APPLIED HERE: Added 'age' extraction and multiple images support
@@ -287,10 +302,10 @@ app.delete('/api/admin/livestock/:id', async (req, res) => {
 
 app.get('/api/admin/orders', async (req, res) => {
     try {
-        // Trigger lazy cleanup on fetch to ensure admin sees up-to-date states
-        await expireUnpaidOrders();
-        // Exclude image data for performance
-        const orders = await Order.find({}, '-paymentProof.data').sort({ createdAt: -1 });
+        // Run cleanup in background — do NOT await, so it doesn't block the response
+        expireUnpaidOrders().catch(err => console.error('Background expiry error:', err));
+        // Exclude image data for performance; lean() returns plain JS objects (~3-5x faster)
+        const orders = await Order.find({}, '-paymentProof.data').sort({ createdAt: -1 }).lean();
         res.json({ orders });
     } catch (err) { res.status(500).json({ message: 'Failed to load orders', error: err.message }); }
 });
@@ -358,13 +373,13 @@ app.put('/api/admin/orders/:id', async (req, res) => {
 });
 
 app.get('/api/admin/users', async (req, res) => {
-    try { const users = await User.find({}, 'name email createdAt').sort({ createdAt: -1 }); res.json({ users }); } catch (err) { res.status(500).json({ message: 'Failed to load users', error: err.message }); }
+    try { const users = await User.find({}, 'name email createdAt').sort({ createdAt: -1 }).lean(); res.json({ users }); } catch (err) { res.status(500).json({ message: 'Failed to load users', error: err.message }); }
 });
 
 // --- NEW: Admin Notifications Endpoint ---
 app.get('/api/admin/notifications', async (req, res) => {
     try {
-        const notifs = await AdminNotification.find().sort({ createdAt: -1 }).limit(50);
+        const notifs = await AdminNotification.find().sort({ createdAt: -1 }).limit(50).lean();
         res.json({ notifications: notifs });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -374,7 +389,7 @@ app.delete('/api/admin/notifications/clear', async (req, res) => {
 
 // --- ORDER ROUTES ---
 app.get('/api/orders', authMiddleware, async (req, res) => {
-    try { const orders = await Order.find({ userId: req.user.id }, '-paymentProof.data').sort({ createdAt: -1 }); res.json(orders); } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const orders = await Order.find({ userId: req.user.id }, '-paymentProof.data').sort({ createdAt: -1 }).lean(); res.json(orders); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // RE-UPLOAD PROOF (With Duplicate Check & Admin Notif)
