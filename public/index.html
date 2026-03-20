@@ -381,8 +381,6 @@
             50%      { transform:scale(1.18); opacity:.5; }
         }
         .ud-orb { animation: udOrbPulse 3s ease-in-out infinite; }
-        @keyframes spinCW  { from { transform:rotate(0deg);   } to { transform:rotate(360deg);  } }
-        @keyframes spinCCW { from { transform:rotate(0deg);   } to { transform:rotate(-360deg); } }
         @keyframes udRowSlide {
             from { opacity:0; transform: translateX(-14px); }
             to   { opacity:1; transform: translateX(0); }
@@ -842,16 +840,30 @@
 
                   <!-- ── Dashboard Loading Overlay ── -->
                   <div id="dashboard-loader" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-2xl min-h-[60vh]">
-                    <div style="position:relative;width:72px;height:72px;">
-                      <svg style="position:absolute;inset:0;width:72px;height:72px;animation:spinCW 1.5s linear infinite;" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="36" cy="36" r="30" stroke="rgba(16,185,129,0.15)" stroke-width="6"/>
-                        <path d="M36 6 A30 30 0 0 1 66 36" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
-                      </svg>
-                      <svg style="position:absolute;inset:10px;width:52px;height:52px;animation:spinCCW 2s linear infinite;" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="26" cy="26" r="21" stroke="rgba(16,185,129,0.1)" stroke-width="4"/>
-                        <path d="M26 5 A21 21 0 0 0 5 26" stroke="rgba(16,185,129,0.55)" stroke-width="4" stroke-linecap="round"/>
-                      </svg>
-                      <div style="position:absolute;inset:22px;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#10b981,#047857);animation:udOrbPulse 1.6s ease-in-out infinite;"></div>
+                    <div class="flex flex-col items-center gap-6">
+                      <div class="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl" style="background:linear-gradient(145deg,#10b981,#064e3b);animation:udOrbPulse 2s ease-in-out infinite;">
+                        <svg width="44" height="44" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <ellipse cx="40" cy="40" rx="22" ry="20" fill="rgba(255,255,255,0.95)"/>
+                          <path d="M22 26 Q14 12 18 8 Q22 16 26 24" fill="rgba(255,255,255,0.9)"/>
+                          <path d="M58 26 Q66 12 62 8 Q58 16 54 24" fill="rgba(255,255,255,0.9)"/>
+                          <ellipse cx="18" cy="36" rx="7" ry="5" fill="rgba(255,255,255,0.85)" transform="rotate(-15 18 36)"/>
+                          <ellipse cx="62" cy="36" rx="7" ry="5" fill="rgba(255,255,255,0.85)" transform="rotate(15 62 36)"/>
+                          <ellipse cx="32" cy="36" rx="4" ry="3" fill="#047857"/>
+                          <ellipse cx="48" cy="36" rx="4" ry="3" fill="#047857"/>
+                          <circle cx="33" cy="35" r="1.2" fill="white"/>
+                          <circle cx="49" cy="35" r="1.2" fill="white"/>
+                          <ellipse cx="40" cy="50" rx="10" ry="7" fill="rgba(255,255,255,0.75)"/>
+                          <circle cx="37" cy="50" r="2" fill="#047857" opacity="0.7"/>
+                          <circle cx="43" cy="50" r="2" fill="#047857" opacity="0.7"/>
+                        </svg>
+                      </div>
+                      <div class="text-center">
+                        <p class="text-base font-bold text-gray-700 dark:text-gray-200 mb-1">Loading your dashboard&hellip;</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500">Fetching your latest data</p>
+                      </div>
+                      <div class="lm-dot-loader">
+                        <span></span><span></span><span></span>
+                      </div>
                     </div>
                   </div>
 
