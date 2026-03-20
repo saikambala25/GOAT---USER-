@@ -1509,6 +1509,12 @@ function isSessionStillValid() {
             if (auth) auth.classList.remove('hidden');
             if (app) app.classList.add('hidden');
             removeAuthLoadingOverlay();
+            // Dismiss splash after login screen has painted
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window._splashDone();
+                });
+            });
         }
         function showApp() {
             const auth = document.getElementById('auth-screen');
@@ -1519,6 +1525,13 @@ function isSessionStillValid() {
             if (!appInitialized) {
                 initApp();
             }
+            // Wait for the browser to actually paint the dashboard before
+            // the splash fades out — eliminates the blank-screen gap.
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window._splashDone();
+                });
+            });
         }
         function showAuthLoadingOverlay() {
             // Hide both screens — show a seamless green loading overlay
@@ -1686,8 +1699,7 @@ function isSessionStillValid() {
                         _splashProgress(80, 'Fetching livestock…');
                         await loadData();
                         _splashProgress(97, 'Almost ready…');
-                        showApp();
-                        setTimeout(_splashDone, window._splashMinDone ? 0 : 500);
+                        showApp(); // showApp() triggers _splashDone after paint
                     } else {
                         // App already running — just silently refresh user data
                         updateProfileUI();
@@ -1698,17 +1710,15 @@ function isSessionStillValid() {
                     // this is a genuine logged-out state, show login screen.
                     localStorage.removeItem('lm_user');
                     currentUser = null;
-                    showAuthScreen();
-                    _splashDone();
+                    showAuthScreen(); // showAuthScreen() triggers _splashDone after paint
                 }
                 // 401 while app is running = stale cookie, but user stays in app.
                 // handleLogout() is the ONLY way to intentionally send to login.
             } catch (err) {
                 // Network error — never kick user out. Silently ignore.
                 if (!appAlreadyRunning && !localStorage.getItem('lm_user')) {
-                    showAuthScreen();
+                    showAuthScreen(); // showAuthScreen() triggers _splashDone after paint
                 }
-                _splashDone();
             }
         }
         async function loadData() {
@@ -2985,12 +2995,10 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                     return loadData();
                 }).then(() => {
                     _splashProgress(95, 'Almost ready…');
-                    showApp();
+                    showApp(); // showApp() triggers _splashDone after paint
                     resetSessionTimer();
-                    setTimeout(_splashDone, _splashMinDone ? 0 : 600);
                 }).catch(() => {
-                    showApp();
-                    _splashDone();
+                    showApp(); // showApp() triggers _splashDone after paint
                 });
                 checkAuth();
             } else if (savedUser && savedUser.id && sessionValid) {
@@ -3006,8 +3014,8 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 }
                 _splashProgress(80, 'Loading…');
                 // Short min display then show login
-                var _showLogin = function() { showAuthScreen(); _splashDone(); };
-                if (_splashMinDone) { _showLogin(); } else { setTimeout(_showLogin, 800); }
+                var _showLogin = function() { showAuthScreen(); };
+                if (window._splashMinDone) { _showLogin(); } else { setTimeout(_showLogin, 800); }
                 checkAuth();
             }
         });
