@@ -836,7 +836,39 @@
                 <!-- ╔══════════════════════════════════════════╗ -->
                 <!-- ║    PREMIUM USER DASHBOARD                ║ -->
                 <!-- ╚══════════════════════════════════════════╝ -->
-                <div id="view-dashboard" class="pb-6">
+                <div id="view-dashboard" class="pb-6 relative">
+
+                  <!-- ── Dashboard Loading Overlay ── -->
+                  <div id="dashboard-loader" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-2xl min-h-[60vh]">
+                    <div class="flex flex-col items-center gap-6">
+                      <div class="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl" style="background:linear-gradient(145deg,#10b981,#064e3b);animation:udOrbPulse 2s ease-in-out infinite;">
+                        <svg width="44" height="44" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <ellipse cx="40" cy="40" rx="22" ry="20" fill="rgba(255,255,255,0.95)"/>
+                          <path d="M22 26 Q14 12 18 8 Q22 16 26 24" fill="rgba(255,255,255,0.9)"/>
+                          <path d="M58 26 Q66 12 62 8 Q58 16 54 24" fill="rgba(255,255,255,0.9)"/>
+                          <ellipse cx="18" cy="36" rx="7" ry="5" fill="rgba(255,255,255,0.85)" transform="rotate(-15 18 36)"/>
+                          <ellipse cx="62" cy="36" rx="7" ry="5" fill="rgba(255,255,255,0.85)" transform="rotate(15 62 36)"/>
+                          <ellipse cx="32" cy="36" rx="4" ry="3" fill="#047857"/>
+                          <ellipse cx="48" cy="36" rx="4" ry="3" fill="#047857"/>
+                          <circle cx="33" cy="35" r="1.2" fill="white"/>
+                          <circle cx="49" cy="35" r="1.2" fill="white"/>
+                          <ellipse cx="40" cy="50" rx="10" ry="7" fill="rgba(255,255,255,0.75)"/>
+                          <circle cx="37" cy="50" r="2" fill="#047857" opacity="0.7"/>
+                          <circle cx="43" cy="50" r="2" fill="#047857" opacity="0.7"/>
+                        </svg>
+                      </div>
+                      <div class="text-center">
+                        <p class="text-base font-bold text-gray-700 dark:text-gray-200 mb-1">Loading your dashboard&hellip;</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500">Fetching your latest data</p>
+                      </div>
+                      <div class="lm-dot-loader">
+                        <span></span><span></span><span></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Dashboard content (hidden until loader done) -->
+                  <div id="dashboard-content" style="opacity:0;pointer-events:none;transition:opacity .45s ease;">
 
                   <!-- Welcome Banner -->
                   <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 p-6 md:p-7 mb-6 shadow-2xl shadow-emerald-500/30 ud-card-enter" style="animation-delay:.05s">
@@ -1013,6 +1045,7 @@
                     </div>
                   </div>
 
+                  </div><!-- /dashboard-content -->
                 </div>
                 <!-- ═══════════════════════════════════════════════ -->
 
@@ -2051,7 +2084,7 @@ function isSessionStillValid() {
                 overlay.classList.add('hidden');
             }
             
-            if (viewName === 'dashboard') renderDashboard();
+            if (viewName === 'dashboard') showDashboardWithLoader();
             if (viewName === 'browse') renderBrowse();
             if (viewName === 'cart') renderCart();
             if (viewName === 'orders') renderOrders();
@@ -2079,7 +2112,54 @@ function isSessionStillValid() {
             requestAnimationFrame(tick);
         }
 
+        // ── Dashboard loader: shows dots animation, then reveals content ──────────
+        let _dashLoaderTimer = null;
+        function showDashboardWithLoader() {
+            const loader  = document.getElementById('dashboard-loader');
+            const dashContent = document.getElementById('dashboard-content');
+            if (!loader || !dashContent) { renderDashboard(); return; }
+
+            // Show loader, hide content
+            loader.classList.remove('hidden');
+            dashContent.style.opacity = '0';
+            dashContent.style.pointerEvents = 'none';
+
+            // Cancel any previous pending timer
+            if (_dashLoaderTimer) clearTimeout(_dashLoaderTimer);
+
+            // Wait for dots animation to play (1.4 s feels natural)
+            _dashLoaderTimer = setTimeout(() => {
+                // Render data while still invisible
+                renderDashboard();
+
+                // Fade out loader
+                loader.style.transition = 'opacity .35s ease';
+                loader.style.opacity = '0';
+
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                    loader.style.opacity = '';
+                    loader.style.transition = '';
+
+                    // Fade in dashboard content
+                    dashContent.style.opacity = '1';
+                    dashContent.style.pointerEvents = '';
+                }, 370);
+
+                _dashLoaderTimer = null;
+            }, 1400);
+        }
+
         function renderDashboard() {
+            // If content wrapper is still hidden (loader showing), reveal it immediately
+            const _dc = document.getElementById('dashboard-content');
+            if (_dc && _dc.style.opacity === '0' && _dc.style.pointerEvents === 'none') {
+                // called by background refresh — skip loader, just show content
+                const _ldr = document.getElementById('dashboard-loader');
+                if (_ldr) { _ldr.classList.add('hidden'); _ldr.style.opacity = ''; }
+                _dc.style.opacity = '1';
+                _dc.style.pointerEvents = '';
+            }
             const totalSpent    = orders.reduce((s, o) => s + (o.total || 0), 0);
             const totalOrders   = orders.length;
             const delivered     = orders.filter(o => o.status === 'Delivered').length;
