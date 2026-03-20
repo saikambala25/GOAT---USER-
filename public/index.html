@@ -1667,6 +1667,7 @@ function isSessionStillValid() {
             // is actively using the app. Only show login on a totally fresh visit.
             const appAlreadyRunning = appInitialized;
             try {
+                _splashProgress(35, 'Checking login…');
                 const res = await fetch(`${API_URL}/auth/me?_=${Date.now()}`, { method: 'GET', credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
@@ -1676,12 +1677,17 @@ function isSessionStillValid() {
                     markActivity();
                     if (!appAlreadyRunning) {
                         // Fresh visit with valid server session — boot the app
+                        _splashProgress(55, 'Loading your data…');
                         await loadUserState();
                         updateProfileUI();
                         updateCartBadge();
                         updateWishlistBadge();
                         updateNotificationBadge();
+                        _splashProgress(80, 'Fetching livestock…');
+                        await loadData();
+                        _splashProgress(97, 'Almost ready…');
                         showApp();
+                        setTimeout(_splashDone, window._splashMinDone ? 0 : 500);
                     } else {
                         // App already running — just silently refresh user data
                         updateProfileUI();
@@ -1693,6 +1699,7 @@ function isSessionStillValid() {
                     localStorage.removeItem('lm_user');
                     currentUser = null;
                     showAuthScreen();
+                    _splashDone();
                 }
                 // 401 while app is running = stale cookie, but user stays in app.
                 // handleLogout() is the ONLY way to intentionally send to login.
@@ -1701,6 +1708,7 @@ function isSessionStillValid() {
                 if (!appAlreadyRunning && !localStorage.getItem('lm_user')) {
                     showAuthScreen();
                 }
+                _splashDone();
             }
         }
         async function loadData() {
@@ -2964,21 +2972,30 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
 
             if (savedUser && savedUser.id && tabIsActive && sessionValid) {
                 // ✅ Browser refresh on logged-in tab — restore immediately
+                _splashProgress(20, 'Restoring session…');
                 currentUser = savedUser;
                 updateProfileUI();
                 updateCartBadge();
                 updateWishlistBadge();
                 updateNotificationBadge();
-                showApp();
-                resetSessionTimer();
-                loadUserState().then(() => { updateCartBadge(); updateWishlistBadge(); });
-                loadData();
+                _splashProgress(45, 'Loading your data…');
+                loadUserState().then(() => {
+                    updateCartBadge(); updateWishlistBadge();
+                    _splashProgress(70, 'Fetching livestock…');
+                    return loadData();
+                }).then(() => {
+                    _splashProgress(95, 'Almost ready…');
+                    showApp();
+                    resetSessionTimer();
+                    setTimeout(_splashDone, _splashMinDone ? 0 : 600);
+                }).catch(() => {
+                    showApp();
+                    _splashDone();
+                });
                 checkAuth();
             } else if (savedUser && savedUser.id && sessionValid) {
                 // ✅ New tab / direct link but user data & session still valid —
-                // Show a silent loading overlay instead of flashing the login page,
-                // then let checkAuth() decide what to show.
-                showAuthLoadingOverlay();
+                _splashProgress(20, 'Verifying session…');
                 checkAuth();
             } else {
                 // ✅ Fresh visit or expired session — clean up and show login page
@@ -2987,7 +3004,10 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                     localStorage.removeItem(ACTIVITY_KEY);
                     sessionStorage.removeItem(SESSION_FLAG);
                 }
-                showAuthScreen();
+                _splashProgress(80, 'Loading…');
+                // Short min display then show login
+                var _showLogin = function() { showAuthScreen(); _splashDone(); };
+                if (_splashMinDone) { _showLogin(); } else { setTimeout(_showLogin, 800); }
                 checkAuth();
             }
         });
@@ -3686,6 +3706,62 @@ setLang("en");
 
 <!-- auth restore handled by checkAuth() called in DOMContentLoaded above -->
 
+
+<!-- ═══════════════════════════════════════════════════
+     SPLASH SCREEN
+═══════════════════════════════════════════════════ -->
+<div id="lm-splash" style="position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a 0%,#065f46 100%);transition:opacity 0.5s ease;">
+  <div style="text-align:center;">
+    <img src="IMG_20251229_120150.jpg" alt="LivestockMart"
+      style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid rgba(255,255,255,0.35);box-shadow:0 8px 32px rgba(0,0,0,0.35);animation:lmSplashBounce 1.4s ease-in-out infinite;">
+    <h1 style="margin:18px 0 6px;font-size:22px;font-weight:800;color:#fff;letter-spacing:0.5px;font-family:'Inter',sans-serif;">LivestockMart</h1>
+    <p style="margin:0 0 28px;color:rgba(255,255,255,0.65);font-size:13px;font-family:'Inter',sans-serif;">India's Trusted Livestock Marketplace</p>
+    <!-- Progress bar -->
+    <div style="width:180px;height:4px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;margin:0 auto;">
+      <div id="lm-splash-bar" style="height:100%;width:0%;background:#fff;border-radius:99px;transition:width 0.4s ease;"></div>
+    </div>
+    <p id="lm-splash-status" style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:11px;font-family:'Inter',sans-serif;">Loading…</p>
+  </div>
+</div>
+<style>
+@keyframes lmSplashBounce {
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+}
+</style>
+<script>
+(function(){
+  // Expose helpers for the app to call
+  var bar = document.getElementById('lm-splash-bar');
+  var status = document.getElementById('lm-splash-status');
+  var splashDone = false;
+
+  window._splashProgress = function(pct, text) {
+    if (splashDone) return;
+    if (bar) bar.style.width = Math.min(pct, 100) + '%';
+    if (status && text) status.textContent = text;
+  };
+
+  window._splashDone = function() {
+    if (splashDone) return;
+    splashDone = true;
+    var el = document.getElementById('lm-splash');
+    if (!el) return;
+    _splashProgress(100, 'Ready!');
+    setTimeout(function() {
+      el.style.opacity = '0';
+      setTimeout(function() { el.remove(); }, 520);
+    }, 300);
+  };
+
+  // Minimum display time so it doesn't flash
+  window._splashMinDone = false;
+  setTimeout(function(){ window._splashMinDone = true; }, 1000);
+
+  // Safety net — force-remove after 8s no matter what
+  setTimeout(function(){ window._splashDone(); }, 8000);
+})();
+</script>
 
 <!-- ═══════════════════════════════════════════════════
      PWA: MANIFEST · SERVICE WORKER · INSTALL LOGIC
