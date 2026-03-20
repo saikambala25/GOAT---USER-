@@ -1788,7 +1788,13 @@ function isSessionStillValid() {
 
             updateCartBadge();
             updateWishlistBadge(); 
-            updateNotificationBadge(); 
+            updateNotificationBadge();
+
+            // Dismiss splash on the very first data load
+            if (!window._firstDataLoaded) {
+                window._firstDataLoaded = true;
+                window._hideSplash && window._hideSplash();
+            }
         }
 
         function router(viewName) {
@@ -2936,19 +2942,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             const tabIsActive   = sessionStorage.getItem(SESSION_FLAG) === '1';
             const sessionValid  = isSessionStillValid();
 
-            // PWA standalone launches clear sessionStorage on every close, so
-            // tabIsActive is always false even for a logged-in user.
-            // Treat standalone mode + valid session as equivalent to tabIsActive.
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches
-                          || window.navigator.standalone === true;
-            const canRestore = tabIsActive || (isPWA && sessionValid);
-
-            // Seed sessionStorage now so in-session navigations behave like refreshes
-            if (isPWA && savedUser && sessionValid) {
-                sessionStorage.setItem(SESSION_FLAG, '1');
-            }
-
-            if (savedUser && savedUser.id && canRestore && sessionValid) {
+            if (savedUser && savedUser.id && tabIsActive && sessionValid) {
                 // ✅ Browser refresh on logged-in tab — restore immediately
                 currentUser = savedUser;
                 updateProfileUI();
@@ -3948,30 +3942,50 @@ self.addEventListener('notificationclick', e => {
     <div style="text-align:center;">
         <img src="IMG_20251229_120150.jpg" style="width:120px;height:100px;object-fit:contain;animation:bounce 1.5s infinite;">
         <h1 style="margin-top:20px;font-size:20px;font-weight:bold;color:white;">LivestockMart</h1>
+        <div style="margin-top:24px;width:180px;height:4px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;margin-left:auto;margin-right:auto;">
+            <div id="splash-bar" style="height:100%;width:0%;background:white;border-radius:99px;transition:width 0.3s ease;"></div>
+        </div>
+        <p id="splash-status" style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.3px;">Loading market data…</p>
     </div>
 </div>
 
 <script>
 // ── SPLASH GUARD ─────────────────────────────────────────────────────────────
 // Skip splash only on refresh of an active tab (sessionStorage flag present).
-// Fresh visits always see the splash → then login.
+// Fresh visits: show splash + animate bar until MongoDB data finishes loading.
 (function() {
     var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
     var splash = document.getElementById('splash-screen');
     if (isRefresh && splash) {
         splash.remove(); // Refresh: instant, no flash
-    } else {
-        // Fresh visit: show splash briefly then fade out
-        window.addEventListener("load", function() {
-            var s = document.getElementById("splash-screen");
-            if (!s) return;
-            setTimeout(function() {
-                s.style.transition = "0.5s ease";
-                s.style.opacity = "0";
-                setTimeout(function() { s.remove(); }, 500);
-            }, 1200);
-        });
+        window._splashDone = true;
+        return;
     }
+
+    window._splashDone = false;
+
+    // Animate the bar from 0→80% while waiting for data (never reaches 100% on its own)
+    var bar = document.getElementById('splash-bar');
+    if (bar) {
+        setTimeout(function() { bar.style.width = '40%'; }, 100);
+        setTimeout(function() { bar.style.width = '65%'; }, 600);
+        setTimeout(function() { bar.style.width = '80%'; }, 1200);
+    }
+
+    // Called by loadData() when the first fetch completes
+    window._hideSplash = function() {
+        if (window._splashDone) return;
+        window._splashDone = true;
+        var s = document.getElementById('splash-screen');
+        var b = document.getElementById('splash-bar');
+        if (b) { b.style.transition = 'width 0.25s ease'; b.style.width = '100%'; }
+        setTimeout(function() {
+            if (!s) return;
+            s.style.transition = '0.45s ease';
+            s.style.opacity = '0';
+            setTimeout(function() { if (s) s.remove(); }, 450);
+        }, 280);
+    };
 })();
 </script>
 <!-- ==================================================== -->
