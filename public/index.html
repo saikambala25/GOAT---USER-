@@ -4220,47 +4220,45 @@ self.addEventListener('notificationclick', e => {
 </html>
 
 <!-- ================= ULTIMATE SPLASH ================= -->
-<div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#030d08;overflow:hidden;">
-
-  <!-- Soft radial glow -->
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:380px;height:380px;background:radial-gradient(circle,rgba(16,185,129,0.11) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
-
-  <!-- Centered content -->
-  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lmFadeIn .5s ease both;">
-
-    <!-- Rotating arc spinner -->
-    <div style="position:relative;width:80px;height:80px;margin-bottom:32px;">
-      <!-- Outer arc -->
-      <svg style="position:absolute;inset:0;width:80px;height:80px;animation:lmSpinCW 1.4s linear infinite;" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="40" cy="40" r="35" stroke="rgba(16,185,129,0.15)" stroke-width="5"/>
-        <circle cx="40" cy="40" r="35" stroke="#10b981" stroke-width="5" stroke-linecap="round" stroke-dasharray="70 150" stroke-dashoffset="0"/>
-      </svg>
-      <!-- Inner arc opposite direction -->
-      <svg style="position:absolute;inset:12px;width:56px;height:56px;animation:lmSpinCCW 1.0s linear infinite;" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="28" cy="28" r="23" stroke="rgba(16,185,129,0.12)" stroke-width="4"/>
-        <circle cx="28" cy="28" r="23" stroke="#34d399" stroke-width="4" stroke-linecap="round" stroke-dasharray="35 110" stroke-dashoffset="55"/>
-      </svg>
-      <!-- Center pulsing dot -->
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;background:#10b981;border-radius:50%;box-shadow:0 0 12px #10b981,0 0 28px rgba(16,185,129,0.45);animation:lmPulse 1.2s ease-in-out infinite;"></div>
-    </div>
-
-    <!-- Brand name -->
-    <h1 style="margin:0 0 5px;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;font-family:'Inter',system-ui,sans-serif;">LivestockMart</h1>
-    <p style="margin:0 0 26px;font-size:11px;font-weight:600;color:rgba(16,185,129,0.8);letter-spacing:3px;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;">Loading…</p>
-
-    <!-- Shimmering progress bar -->
-    <div style="width:150px;height:2px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
-      <div style="height:100%;background:linear-gradient(90deg,transparent,#10b981,#6ee7b7,transparent);border-radius:99px;animation:lmShimmer 1.5s ease-in-out infinite;background-size:200% 100%;"></div>
-    </div>
-
+<div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#000000 0%,#0a3d2e 50%,#064e3b 100%);overflow:hidden;">
+  <!-- Animated background orbs -->
+  <div style="position:absolute;inset:0;pointer-events:none;">
+    <div style="position:absolute;top:-80px;right:-80px;width:320px;height:320px;background:radial-gradient(circle,rgba(16,185,129,0.18) 0%,transparent 70%);border-radius:50%;animation:splashOrb 3s ease-in-out infinite;"></div>
+    <div style="position:absolute;bottom:-60px;left:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(16,185,129,0.12) 0%,transparent 70%);border-radius:50%;animation:splashOrb 3s ease-in-out infinite 1.5s;"></div>
+    <div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(16,185,129,0.06) 0%,transparent 60%);border-radius:50%;animation:splashOrb 4s ease-in-out infinite 0.8s;"></div>
   </div>
-
+  <!-- Content -->
+  <div style="text-align:center;z-index:1;display:flex;flex-direction:column;align-items:center;animation:splashFadeUp 0.7s cubic-bezier(.22,.68,0,1.2) both 0.1s;">
+    <!-- Loading animation -->
+    <div style="position:relative;width:130px;height:130px;margin-bottom:24px;display:flex;align-items:center;justify-content:center;">
+      <!-- Outer rotating arc -->
+      <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top:3px solid #10b981;border-right:3px solid rgba(16,185,129,0.4);animation:splashSpin 1s linear infinite;"></div>
+      <!-- Middle rotating arc (reverse) -->
+      <div style="position:absolute;inset:12px;border-radius:50%;border:3px solid transparent;border-bottom:3px solid #10b981;border-left:3px solid rgba(16,185,129,0.3);animation:splashSpinRev 1.4s linear infinite;"></div>
+      <!-- Inner pulse core -->
+      <div style="width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.9) 0%,rgba(16,185,129,0.3) 60%,transparent 100%);animation:splashPulse 1.6s ease-in-out infinite;box-shadow:0 0 20px rgba(16,185,129,0.6);"></div>
+      <!-- Glow rings -->
+      <div style="position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(16,185,129,0.2);animation:splashRing 2s ease-in-out infinite;"></div>
+      <div style="position:absolute;inset:-18px;border-radius:50%;border:1px solid rgba(16,185,129,0.1);animation:splashRing 2s ease-in-out infinite 0.5s;"></div>
+    </div>
+        <!-- App name -->
+    <h1 style="margin:0 0 6px;font-size:26px;font-weight:900;color:white;letter-spacing:-0.5px;font-family:'Inter',system-ui,sans-serif;">LivestockMart</h1>
+    <p style="margin:0 0 28px;font-size:12px;font-weight:500;color:rgba(16,185,129,0.9);letter-spacing:2.5px;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;">Greatest Of All Time</p>
+    <!-- Loading dots -->
+    <div style="display:flex;gap:7px;align-items:center;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:splashDot 1.2s ease-in-out infinite 0s;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:splashDot 1.2s ease-in-out infinite 0.2s;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:splashDot 1.2s ease-in-out infinite 0.4s;"></div>
+    </div>
+  </div>
   <style>
-    @keyframes lmFadeIn   { from{opacity:0;} to{opacity:1;} }
-    @keyframes lmSpinCW   { to{transform:rotate(360deg);} }
-    @keyframes lmSpinCCW  { to{transform:rotate(-360deg);} }
-    @keyframes lmPulse    { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1;} 50%{transform:translate(-50%,-50%) scale(1.55);opacity:.5;} }
-    @keyframes lmShimmer  { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
+    @keyframes splashOrb { 0%,100%{transform:scale(1);opacity:.8;} 50%{transform:scale(1.18);opacity:1;} }
+    @keyframes splashFadeUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes splashRing { 0%,100%{transform:scale(1);opacity:.6;} 50%{transform:scale(1.08);opacity:.3;} }
+    @keyframes splashDot { 0%,100%{transform:scale(1);opacity:.35;} 50%{transform:scale(1.5);opacity:1;} }
+    @keyframes splashSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+    @keyframes splashSpinRev { 0%{transform:rotate(0deg);} 100%{transform:rotate(-360deg);} }
+    @keyframes splashPulse { 0%,100%{transform:scale(0.85);opacity:0.7;} 50%{transform:scale(1.15);opacity:1;} }
   </style>
 </div>
 
