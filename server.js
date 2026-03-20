@@ -188,7 +188,7 @@ app.put('/api/user/state', authMiddleware, async (req, res) => {
 
 // --- LIVESTOCK ---
 app.get('/api/livestock', async (req, res) => {
-    try { const livestock = await Livestock.find({}, '-image'); res.json(livestock); } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const livestock = await Livestock.find({}, { image: 0, 'images.data': 0 }).lean(); res.json(livestock); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/livestock/image/:id', async (req, res) => {
@@ -215,7 +215,7 @@ app.get('/api/livestock/image/:id/:index', async (req, res) => {
 
 // --- ADMIN ROUTES ---
 app.get('/api/admin/livestock', async (req, res) => {
-    try { const livestock = await Livestock.find({}, '-image').sort({ createdAt: -1 }); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
+    try { const livestock = await Livestock.find({}, { image: 0, 'images.data': 0 }).sort({ createdAt: -1 }).lean(); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
 });
 
 // ðŸŸ¢ FIX APPLIED HERE: Added 'age' extraction and multiple images support
@@ -290,7 +290,7 @@ app.get('/api/admin/orders', async (req, res) => {
         // Trigger lazy cleanup on fetch to ensure admin sees up-to-date states
         await expireUnpaidOrders();
         // Exclude image data for performance
-        const orders = await Order.find({}, '-paymentProof.data').sort({ createdAt: -1 });
+        const orders = await Order.find({}, '-paymentProof.data').sort({ createdAt: -1 }).lean();
         res.json({ orders });
     } catch (err) { res.status(500).json({ message: 'Failed to load orders', error: err.message }); }
 });
@@ -374,7 +374,7 @@ app.delete('/api/admin/notifications/clear', async (req, res) => {
 
 // --- ORDER ROUTES ---
 app.get('/api/orders', authMiddleware, async (req, res) => {
-    try { const orders = await Order.find({ userId: req.user.id }, '-paymentProof.data').sort({ createdAt: -1 }); res.json(orders); } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const orders = await Order.find({ userId: req.user.id }, '-paymentProof.data').sort({ createdAt: -1 }).lean(); res.json(orders); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // RE-UPLOAD PROOF (With Duplicate Check & Admin Notif)
