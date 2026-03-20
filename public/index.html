@@ -285,15 +285,15 @@
 ═══════════════════════════════════════════ -->
 <div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;font-family:'Inter',system-ui,sans-serif;">
   <!-- Backdrop blur strip -->
-  <div style="background:linear-gradient(to top,rgba(0,0,0,0.97) 0%,rgba(26,26,26,0.98) 100%);border-top:2px solid #f5c200;box-shadow:0 -8px 40px rgba(245,194,0,0.25);padding:14px 16px 28px;">
+  <div style="background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(6,78,59,0.97) 100%);border-top:1px solid rgba(16,185,129,0.3);box-shadow:0 -8px 40px rgba(16,185,129,0.2);padding:14px 16px 28px;">
     <div style="max-width:500px;margin:0 auto;">
 
       <!-- Main row -->
       <div style="display:flex;align-items:center;gap:12px;">
 
         <!-- App icon -->
-        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;background:#f5c200;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(245,194,0,0.5);border:2px solid #1a1a1a;overflow:hidden;">
-          <img src="IMG_20251229_120150.jpg" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
+        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(16,185,129,0.45);border:1.5px solid rgba(16,185,129,0.4);">
+          <img src="IMG_20251229_120150.jpg" alt="LivestockMart" style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
 
         <!-- Text -->
@@ -305,7 +305,7 @@
         <!-- Buttons -->
         <div style="display:flex;gap:8px;flex-shrink:0;">
           <button id="pwa-install-btn" onclick="triggerPWAInstall()"
-            style="background:#f5c200;color:#1a1a1a;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(245,194,0,0.5);transition:transform .15s,opacity .15s;white-space:nowrap;"
+            style="background:#10b981;color:#fff;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(16,185,129,0.5);transition:transform .15s,opacity .15s;white-space:nowrap;"
             onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
             Install ↓
           </button>
@@ -416,7 +416,7 @@
                 <div class="relative z-10">
                     <div class="flex items-center gap-3 mb-8">
                         <div class="w-12 h-12 bg-white rounded-full p-1 shadow-lg flex-shrink-0">
-                            <img src="IMG_20251229_120150.jpg" alt="Logo" class="w-full h-full object-contain rounded-full">
+                            <img src="IMG20251229120150.jpg" alt="Logo" class="w-full h-full object-contain rounded-full">
                         </div>
                         <span class="text-3xl font-bold tracking-tight">LivestockMart</span>
                     </div>
@@ -3930,36 +3930,3 @@ self.addEventListener('notificationclick', e => {
 
 </body>
 </html>
-
-<!-- ================= ULTIMATE SPLASH ================= -->
-<div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5c200,#1a1a1a);">
-    <div style="text-align:center;">
-        <img src="IMG_20251229_120150.jpg" style="width:140px;height:140px;object-fit:contain;animation:bounce 1.5s infinite;border-radius:50%;border:3px solid #1a1a1a;background:#f5c200;">
-        <h1 style="margin-top:20px;font-size:20px;font-weight:bold;color:white;">LivestockMart</h1>
-    </div>
-</div>
-
-<script>
-// ── SPLASH GUARD ─────────────────────────────────────────────────────────────
-// Skip splash only on refresh of an active tab (sessionStorage flag present).
-// Fresh visits always see the splash → then login.
-(function() {
-    var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
-    var splash = document.getElementById('splash-screen');
-    if (isRefresh && splash) {
-        splash.remove(); // Refresh: instant, no flash
-    } else {
-        // Fresh visit: show splash briefly then fade out
-        window.addEventListener("load", function() {
-            var s = document.getElementById("splash-screen");
-            if (!s) return;
-            setTimeout(function() {
-                s.style.transition = "0.5s ease";
-                s.style.opacity = "0";
-                setTimeout(function() { s.remove(); }, 500);
-            }, 1200);
-        });
-    }
-})();
-</script>
-<!-- ==================================================== -->
