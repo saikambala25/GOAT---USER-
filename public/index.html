@@ -1508,14 +1508,40 @@ function isSessionStillValid() {
             const app = document.getElementById('user-app');
             if (auth) auth.classList.remove('hidden');
             if (app) app.classList.add('hidden');
+            removeAuthLoadingOverlay();
         }
         function showApp() {
             const auth = document.getElementById('auth-screen');
             const app = document.getElementById('user-app');
             if (auth) auth.classList.add('hidden');
             if (app) app.classList.remove('hidden');
+            removeAuthLoadingOverlay();
             if (!appInitialized) {
                 initApp();
+            }
+        }
+        function showAuthLoadingOverlay() {
+            // Hide both screens — show a seamless green loading overlay
+            const auth = document.getElementById('auth-screen');
+            const app  = document.getElementById('user-app');
+            if (auth) auth.classList.add('hidden');
+            if (app)  app.classList.add('hidden');
+            if (document.getElementById('_auth_loading_overlay')) return;
+            const ov = document.createElement('div');
+            ov.id = '_auth_loading_overlay';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:9998;background:linear-gradient(135deg,#16a34a,#065f46);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;';
+            ov.innerHTML = `
+              <img src="IMG_20251229_120150.jpg" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.3);">
+              <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            `;
+            document.body.appendChild(ov);
+        }
+        function removeAuthLoadingOverlay() {
+            const ov = document.getElementById('_auth_loading_overlay');
+            if (ov) {
+                ov.style.transition = 'opacity 0.3s';
+                ov.style.opacity = '0';
+                setTimeout(() => ov.remove(), 320);
             }
         }
         function getInitials(name) {
@@ -2947,19 +2973,23 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 resetSessionTimer();
                 loadUserState().then(() => { updateCartBadge(); updateWishlistBadge(); });
                 loadData();
+                checkAuth();
+            } else if (savedUser && savedUser.id && sessionValid) {
+                // ✅ New tab / direct link but user data & session still valid —
+                // Show a silent loading overlay instead of flashing the login page,
+                // then let checkAuth() decide what to show.
+                showAuthLoadingOverlay();
+                checkAuth();
             } else {
-                // ✅ Fresh visit or expired session — show login page
-                if (!sessionValid && savedUser) {
-                    // Expired — clean up
+                // ✅ Fresh visit or expired session — clean up and show login page
+                if (savedUser) {
                     localStorage.removeItem('lm_user');
                     localStorage.removeItem(ACTIVITY_KEY);
                     sessionStorage.removeItem(SESSION_FLAG);
                 }
                 showAuthScreen();
+                checkAuth();
             }
-
-            // Always silently verify with server in background.
-            checkAuth();
         });
         
         function showPaymentUI(upiString, paymentId, itemsToBuy, total) {
