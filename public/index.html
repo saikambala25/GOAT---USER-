@@ -4229,19 +4229,33 @@ self.addEventListener('notificationclick', e => {
   </div>
   <!-- Content -->
   <div style="text-align:center;z-index:1;display:flex;flex-direction:column;align-items:center;animation:splashFadeUp 0.7s cubic-bezier(.22,.68,0,1.2) both 0.1s;">
-    <!-- Loading animation -->
-    <div style="position:relative;width:130px;height:130px;margin-bottom:24px;display:flex;align-items:center;justify-content:center;">
-      <!-- Outer rotating arc -->
-      <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top:3px solid #10b981;border-right:3px solid rgba(16,185,129,0.4);animation:splashSpin 1s linear infinite;"></div>
-      <!-- Middle rotating arc (reverse) -->
-      <div style="position:absolute;inset:12px;border-radius:50%;border:3px solid transparent;border-bottom:3px solid #10b981;border-left:3px solid rgba(16,185,129,0.3);animation:splashSpinRev 1.4s linear infinite;"></div>
-      <!-- Inner pulse core -->
-      <div style="width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.9) 0%,rgba(16,185,129,0.3) 60%,transparent 100%);animation:splashPulse 1.6s ease-in-out infinite;box-shadow:0 0 20px rgba(16,185,129,0.6);"></div>
-      <!-- Glow rings -->
-      <div style="position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(16,185,129,0.2);animation:splashRing 2s ease-in-out infinite;"></div>
-      <div style="position:absolute;inset:-18px;border-radius:50%;border:1px solid rgba(16,185,129,0.1);animation:splashRing 2s ease-in-out infinite 0.5s;"></div>
+    <!-- Animated Loader -->
+    <div style="position:relative;width:150px;height:150px;margin-bottom:28px;display:flex;align-items:center;justify-content:center;">
+      <!-- Outer spinning arc -->
+      <svg style="position:absolute;top:0;left:0;animation:spinCW 1.8s linear infinite;" width="150" height="150" viewBox="0 0 150 150">
+        <circle cx="75" cy="75" r="68" fill="none" stroke="rgba(16,185,129,0.9)" stroke-width="4" stroke-dasharray="220 214" stroke-linecap="round"/>
+      </svg>
+      <!-- Middle spinning arc (reverse) -->
+      <svg style="position:absolute;top:12px;left:12px;animation:spinCCW 2.4s linear infinite;" width="126" height="126" viewBox="0 0 126 126">
+        <circle cx="63" cy="63" r="56" fill="none" stroke="rgba(16,185,129,0.5)" stroke-width="3" stroke-dasharray="140 212" stroke-linecap="round"/>
+      </svg>
+      <!-- Inner spinning arc -->
+      <svg style="position:absolute;top:26px;left:26px;animation:spinCW 3s linear infinite;" width="98" height="98" viewBox="0 0 98 98">
+        <circle cx="49" cy="49" r="43" fill="none" stroke="rgba(16,185,129,0.3)" stroke-width="2" stroke-dasharray="80 190" stroke-linecap="round"/>
+      </svg>
+      <!-- Center glowing circle with farm icon -->
+      <div style="width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.25) 0%,rgba(16,185,129,0.08) 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(16,185,129,0.5),0 0 48px rgba(16,185,129,0.2);animation:splashOrb 2.5s ease-in-out infinite;">
+        <svg viewBox="0 0 48 48" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Stylised barn / farm outline -->
+          <path d="M8 22 L24 8 L40 22 L40 42 L8 42 Z" fill="rgba(16,185,129,0.18)" stroke="#10b981" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M24 8 L24 0" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+          <rect x="18" y="28" width="12" height="14" rx="2" fill="rgba(16,185,129,0.35)" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="10" y="24" width="8" height="8" rx="1" fill="rgba(16,185,129,0.35)" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="30" y="24" width="8" height="8" rx="1" fill="rgba(16,185,129,0.35)" stroke="#10b981" stroke-width="1.5"/>
+        </svg>
+      </div>
     </div>
-        <!-- App name -->
+    <!-- App name -->
     <h1 style="margin:0 0 6px;font-size:26px;font-weight:900;color:white;letter-spacing:-0.5px;font-family:'Inter',system-ui,sans-serif;">LivestockMart</h1>
     <p style="margin:0 0 28px;font-size:12px;font-weight:500;color:rgba(16,185,129,0.9);letter-spacing:2.5px;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;">Greatest Of All Time</p>
     <!-- Loading dots -->
@@ -4254,11 +4268,9 @@ self.addEventListener('notificationclick', e => {
   <style>
     @keyframes splashOrb { 0%,100%{transform:scale(1);opacity:.8;} 50%{transform:scale(1.18);opacity:1;} }
     @keyframes splashFadeUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
-    @keyframes splashRing { 0%,100%{transform:scale(1);opacity:.6;} 50%{transform:scale(1.08);opacity:.3;} }
     @keyframes splashDot { 0%,100%{transform:scale(1);opacity:.35;} 50%{transform:scale(1.5);opacity:1;} }
-    @keyframes splashSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-    @keyframes splashSpinRev { 0%{transform:rotate(0deg);} 100%{transform:rotate(-360deg);} }
-    @keyframes splashPulse { 0%,100%{transform:scale(0.85);opacity:0.7;} 50%{transform:scale(1.15);opacity:1;} }
+    @keyframes spinCW  { from{transform:rotate(0deg);}   to{transform:rotate(360deg);}  }
+    @keyframes spinCCW { from{transform:rotate(0deg);}   to{transform:rotate(-360deg);} }
   </style>
 </div>
 
