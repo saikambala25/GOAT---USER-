@@ -4216,58 +4216,56 @@ self.addEventListener('notificationclick', e => {
 </script>
 <!-- ══════════════════════════════════════════════════════════ -->
 
-<!-- ================= SPLASH SCREEN ================= -->
-<div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#030f09;overflow:hidden;">
+</body>
+</html>
 
-  <!-- Soft radial glow behind content -->
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;height:340px;background:radial-gradient(circle,rgba(16,185,129,0.13) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+<!-- ================= ULTIMATE SPLASH ================= -->
+<div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#030d08;overflow:hidden;">
 
-  <!-- ── Perfectly-centred content ── -->
+  <!-- Soft radial glow -->
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:380px;height:380px;background:radial-gradient(circle,rgba(16,185,129,0.11) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+  <!-- Centered content -->
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lmFadeIn .5s ease both;">
 
-    <!-- 5-dot wave loader -->
-    <div style="display:flex;align-items:flex-end;gap:7px;height:52px;margin-bottom:36px;">
-      <div class="lm-wave-dot" style="--d:0s;  width:12px;background:#10b981;border-radius:99px;"></div>
-      <div class="lm-wave-dot" style="--d:.12s; width:12px;background:#34d399;border-radius:99px;"></div>
-      <div class="lm-wave-dot" style="--d:.24s; width:12px;background:#6ee7b7;border-radius:99px;"></div>
-      <div class="lm-wave-dot" style="--d:.36s; width:12px;background:#34d399;border-radius:99px;"></div>
-      <div class="lm-wave-dot" style="--d:.48s; width:12px;background:#10b981;border-radius:99px;"></div>
+    <!-- Rotating arc spinner -->
+    <div style="position:relative;width:80px;height:80px;margin-bottom:32px;">
+      <!-- Outer arc -->
+      <svg style="position:absolute;inset:0;width:80px;height:80px;animation:lmSpinCW 1.4s linear infinite;" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="35" stroke="rgba(16,185,129,0.15)" stroke-width="5"/>
+        <circle cx="40" cy="40" r="35" stroke="#10b981" stroke-width="5" stroke-linecap="round" stroke-dasharray="70 150" stroke-dashoffset="0"/>
+      </svg>
+      <!-- Inner arc opposite direction -->
+      <svg style="position:absolute;inset:12px;width:56px;height:56px;animation:lmSpinCCW 1.0s linear infinite;" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="28" cy="28" r="23" stroke="rgba(16,185,129,0.12)" stroke-width="4"/>
+        <circle cx="28" cy="28" r="23" stroke="#34d399" stroke-width="4" stroke-linecap="round" stroke-dasharray="35 110" stroke-dashoffset="55"/>
+      </svg>
+      <!-- Center pulsing dot -->
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;background:#10b981;border-radius:50%;box-shadow:0 0 12px #10b981,0 0 28px rgba(16,185,129,0.45);animation:lmPulse 1.2s ease-in-out infinite;"></div>
     </div>
 
     <!-- Brand name -->
-    <h1 style="margin:0 0 6px;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;font-family:'Inter',system-ui,sans-serif;">LivestockMart</h1>
-    <p style="margin:0;font-size:11px;font-weight:600;color:rgba(16,185,129,0.8);letter-spacing:3px;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;">Please wait…</p>
+    <h1 style="margin:0 0 5px;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;font-family:'Inter',system-ui,sans-serif;">LivestockMart</h1>
+    <p style="margin:0 0 26px;font-size:11px;font-weight:600;color:rgba(16,185,129,0.8);letter-spacing:3px;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;">Loading…</p>
+
+    <!-- Shimmering progress bar -->
+    <div style="width:150px;height:2px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
+      <div style="height:100%;background:linear-gradient(90deg,transparent,#10b981,#6ee7b7,transparent);border-radius:99px;animation:lmShimmer 1.5s ease-in-out infinite;background-size:200% 100%;"></div>
+    </div>
 
   </div>
 
   <style>
-    @keyframes lmFadeIn { from{opacity:0;} to{opacity:1;} }
-    @keyframes lmWave {
-      0%,100% { height:12px; opacity:.4; }
-      50%      { height:48px; opacity:1;  }
-    }
-    .lm-wave-dot {
-      animation: lmWave 1s ease-in-out infinite;
-      animation-delay: var(--d);
-    }
+    @keyframes lmFadeIn   { from{opacity:0;} to{opacity:1;} }
+    @keyframes lmSpinCW   { to{transform:rotate(360deg);} }
+    @keyframes lmSpinCCW  { to{transform:rotate(-360deg);} }
+    @keyframes lmPulse    { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1;} 50%{transform:translate(-50%,-50%) scale(1.55);opacity:.5;} }
+    @keyframes lmShimmer  { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
   </style>
 </div>
 
 <script>
 // ── SPLASH GUARD ─────────────────────────────────────────────────────────────
-(function() {
-    var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
-    var splash = document.getElementById('splash-screen');
-    if (isRefresh && splash) {
-        splash.remove();
-    } else {
-        window.addEventListener("load", function() {
-            var s = document.getElementById("splash-screen");
-            if (!s) return;
-            setTimeout(function() {
-                s.style.transition = "opacity 0.6s ease, transform 0.6s cubic-bezier(.22,.68,0,1.2)";
-                s.style.opacity = "0";
-
 (function() {
     var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
     var splash = document.getElementById('splash-screen');
@@ -4288,6 +4286,3 @@ self.addEventListener('notificationclick', e => {
 })();
 </script>
 <!-- ==================================================== -->
-
-</body>
-</html>
