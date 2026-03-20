@@ -1509,10 +1509,9 @@ function isSessionStillValid() {
             if (auth) auth.classList.remove('hidden');
             if (app) app.classList.add('hidden');
             removeAuthLoadingOverlay();
-            // Dismiss splash after login screen has painted
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    window._splashDone();
+                    setTimeout(() => window._splashDone(), 120);
                 });
             });
         }
@@ -1525,11 +1524,12 @@ function isSessionStillValid() {
             if (!appInitialized) {
                 initApp();
             }
-            // Wait for the browser to actually paint the dashboard before
-            // the splash fades out — eliminates the blank-screen gap.
+            // Keep splash on top while the browser paints the dashboard.
+            // Wait for rAF → rAF → 120ms buffer to ensure all Tailwind/dark-mode
+            // styles and the dashboard grid are visually painted before fade-out.
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    window._splashDone();
+                    setTimeout(() => window._splashDone(), 120);
                 });
             });
         }
@@ -3718,7 +3718,7 @@ setLang("en");
 <!-- ═══════════════════════════════════════════════════
      SPLASH SCREEN
 ═══════════════════════════════════════════════════ -->
-<div id="lm-splash" style="position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a 0%,#065f46 100%);transition:opacity 0.5s ease;">
+<div id="lm-splash" style="position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a 0%,#065f46 100%);transition:opacity 0.5s ease;">
   <div style="text-align:center;">
     <img src="IMG_20251229_120150.jpg" alt="LivestockMart"
       style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid rgba(255,255,255,0.35);box-shadow:0 8px 32px rgba(0,0,0,0.35);animation:lmSplashBounce 1.4s ease-in-out infinite;">
