@@ -2936,7 +2936,19 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             const tabIsActive   = sessionStorage.getItem(SESSION_FLAG) === '1';
             const sessionValid  = isSessionStillValid();
 
-            if (savedUser && savedUser.id && tabIsActive && sessionValid) {
+            // PWA standalone launches clear sessionStorage on every close, so
+            // tabIsActive is always false even for a logged-in user.
+            // Treat standalone mode + valid session as equivalent to tabIsActive.
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches
+                          || window.navigator.standalone === true;
+            const canRestore = tabIsActive || (isPWA && sessionValid);
+
+            // Seed sessionStorage now so in-session navigations behave like refreshes
+            if (isPWA && savedUser && sessionValid) {
+                sessionStorage.setItem(SESSION_FLAG, '1');
+            }
+
+            if (savedUser && savedUser.id && canRestore && sessionValid) {
                 // ✅ Browser refresh on logged-in tab — restore immediately
                 currentUser = savedUser;
                 updateProfileUI();
@@ -3930,3 +3942,36 @@ self.addEventListener('notificationclick', e => {
 
 </body>
 </html>
+
+<!-- ================= ULTIMATE SPLASH ================= -->
+<div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#065f46);">
+    <div style="text-align:center;">
+        <img src="IMG_20251229_120150.jpg" style="width:120px;height:100px;object-fit:contain;animation:bounce 1.5s infinite;">
+        <h1 style="margin-top:20px;font-size:20px;font-weight:bold;color:white;">LivestockMart</h1>
+    </div>
+</div>
+
+<script>
+// ── SPLASH GUARD ─────────────────────────────────────────────────────────────
+// Skip splash only on refresh of an active tab (sessionStorage flag present).
+// Fresh visits always see the splash → then login.
+(function() {
+    var isRefresh = sessionStorage.getItem('lm_tab_session') === '1';
+    var splash = document.getElementById('splash-screen');
+    if (isRefresh && splash) {
+        splash.remove(); // Refresh: instant, no flash
+    } else {
+        // Fresh visit: show splash briefly then fade out
+        window.addEventListener("load", function() {
+            var s = document.getElementById("splash-screen");
+            if (!s) return;
+            setTimeout(function() {
+                s.style.transition = "0.5s ease";
+                s.style.opacity = "0";
+                setTimeout(function() { s.remove(); }, 500);
+            }, 1200);
+        });
+    }
+})();
+</script>
+<!-- ==================================================== -->
