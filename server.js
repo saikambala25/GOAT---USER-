@@ -222,22 +222,7 @@ app.get('/api/livestock/image/:id/:index', async (req, res) => {
 
 // --- ADMIN ROUTES ---
 app.get('/api/admin/livestock', async (req, res) => {
-    try {
-        const livestock = await Livestock.find({}, { image: 0, 'images.data': 0 }).sort({ createdAt: -1 }).lean();
-
-        // Build per-status counts so the dashboard card always reflects reality
-        const counts = { total: livestock.length, available: 0, sold: 0, draft: 0, hidden: 0, other: 0 };
-        for (const item of livestock) {
-            const s = (item.status || '').toLowerCase();
-            if (s === 'available')      counts.available++;
-            else if (s === 'sold')      counts.sold++;
-            else if (s === 'draft')     counts.draft++;
-            else if (s === 'hidden')    counts.hidden++;
-            else                        counts.other++;   // null / unknown status
-        }
-
-        res.json({ livestock, counts });
-    } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
+    try { const livestock = await Livestock.find({}, { image: 0, 'images.data': 0 }).sort({ createdAt: -1 }).lean(); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
 });
 
 // ✅ FIX: Handles BOTH single-item and multi-item (bulk) creation.
