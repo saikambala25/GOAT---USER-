@@ -5,27 +5,8 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const crypto = require('crypto');
-const webpush = require('web-push');   // npm install web-push
+const crypto = require('crypto'); // Used for checking duplicate proofs
 require('dotenv').config();
-
-/* ── VAPID Keys ────────────────────────────────────────────────────────
-   Generate ONCE with:  node -e "const wp=require('web-push');console.log(JSON.stringify(wp.generateVAPIDKeys()))"
-   Then save to .env:
-     VAPID_PUBLIC_KEY=<publicKey>
-     VAPID_PRIVATE_KEY=<privateKey>
-     VAPID_EMAIL=mailto:admin@livestockmart.com
-   ─────────────────────────────────────────────────────────────────── */
-const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  || '';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
-const VAPID_EMAIL       = process.env.VAPID_EMAIL       || 'mailto:admin@livestockmart.com';
-
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-  console.log('✅ VAPID keys loaded — Web Push ready');
-} else {
-  console.warn('⚠️  VAPID keys missing. Add VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to .env to enable push notifications.');
-}
 
 // Models
 const Livestock = require('./models/Livestock');
@@ -50,20 +31,6 @@ const adminNotifSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 const AdminNotification = mongoose.models.AdminNotification || mongoose.model('AdminNotification', adminNotifSchema);
-
-// 3. PushSubscription: stores browser push endpoints per user/device
-const pushSubSchema = new mongoose.Schema({
-  userId    : { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  endpoint  : { type: String, required: true, unique: true },
-  keys      : {
-    p256dh : { type: String, required: true },
-    auth   : { type: String, required: true }
-  },
-  userAgent : { type: String, default: '' },
-  isAdmin   : { type: Boolean, default: false },
-  createdAt : { type: Date, default: Date.now }
-});
-const PushSub = mongoose.models.PushSub || mongoose.model('PushSub', pushSubSchema);
 // -----------------------
 
 const app = express();
@@ -202,166 +169,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', authMiddleware, (req, res) => res.json({ user: req.user }));
 app.post('/api/auth/logout', (req, res) => { res.clearCookie('token'); res.json({ message: 'Logged out' }); });
 
-/* ═══════════════════════════════════════════════════════════════════════
-   PUSH NOTIFICATION HELPERS & ROUTES
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/** Send a push to one subscription object, silently drop expired endpoints */
-async function sendOnePush(sub, payload) {
-  if (!VAPID_PUBLIC_KEY) return;                          // VAPID not configured
-  try {
-    await webpush.sendNotification(
-      { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } },
-      JSON.stringify(payload),
-      { TTL: 86400 }                                      // retry for up to 24h
-    );
-  } catch (err) {
-    if (err.statusCode === 410 || err.statusCode === 404) {
-      // Subscription expired / unsubscribed — clean up
-      await PushSub.deleteOne({ endpoint: sub.endpoint }).catch(() => {});
-    } else {
-      console.error('[Push] sendOnePush error:', err.statusCode, err.message);
-    }
-  }
-}
-
-/** Send a push notification to one or all subscriptions for a user */
-async function pushToUser(userId, payload) {
-  const subs = await PushSub.find({ userId }).lean();
-  await Promise.all(subs.map(s => sendOnePush(s, payload)));
-}
-
-/** Send push to ALL subscriptions (admin broadcast) */
-async function pushToAll(payload) {
-  const subs = await PushSub.find({}).lean();
-  await Promise.all(subs.map(s => sendOnePush(s, payload)));
-}
-
-/** Send push to all ADMIN subscriptions */
-async function pushToAdmins(payload) {
-  const subs = await PushSub.find({ isAdmin: true }).lean();
-  await Promise.all(subs.map(s => sendOnePush(s, payload)));
-}
-
-// ── GET /api/push/vapid-public-key — client fetches this to subscribe ──
-app.get('/api/push/vapid-public-key', (req, res) => {
-  if (!VAPID_PUBLIC_KEY) return res.status(503).json({ message: 'Push not configured' });
-  res.json({ publicKey: VAPID_PUBLIC_KEY });
-});
-
-// ── POST /api/push/subscribe — save a push subscription (user app) ──
-app.post('/api/push/subscribe', authMiddleware, async (req, res) => {
-  try {
-    const { subscription, isAdmin } = req.body;
-    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
-      return res.status(400).json({ message: 'Invalid subscription object' });
-    }
-
-    // Upsert so re-subscribing a device just updates the keys
-    await PushSub.findOneAndUpdate(
-      { endpoint: subscription.endpoint },
-      {
-        userId   : req.user.id,
-        endpoint : subscription.endpoint,
-        keys     : { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
-        userAgent: req.headers['user-agent'] || '',
-        isAdmin  : !!isAdmin
-      },
-      { upsert: true, new: true }
-    );
-
-    // Welcome push
-    await sendOnePush(
-      { endpoint: subscription.endpoint, keys: subscription.keys },
-      {
-        title  : '🔔 Notifications Enabled!',
-        body   : 'You\'ll now receive order updates and market alerts from LivestockMart.',
-        icon   : './IMG_20251229_120150.jpg',
-        badge  : './IMG_20251229_120150.jpg',
-        tag    : 'lm-welcome',
-        url    : './'
-      }
-    );
-
-    res.json({ success: true, message: 'Subscription saved' });
-  } catch (err) {
-    console.error('[Push] Subscribe error:', err);
-    res.status(500).json({ message: 'Failed to save subscription' });
-  }
-});
-
-// ── DELETE /api/push/unsubscribe — remove a push subscription ──────
-app.delete('/api/push/unsubscribe', authMiddleware, async (req, res) => {
-  try {
-    const { endpoint } = req.body;
-    await PushSub.deleteOne({ endpoint, userId: req.user.id });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to remove subscription' });
-  }
-});
-
-// ── POST /api/push/send-to-user — admin sends push to specific user ─
-app.post('/api/push/send-to-user', async (req, res) => {
-  try {
-    const { userId, title, body, url, tag, icon } = req.body;
-    if (!userId || !title || !body) return res.status(400).json({ message: 'userId, title and body required' });
-
-    await pushToUser(userId, {
-      title,
-      body,
-      icon : icon  || './IMG_20251229_120150.jpg',
-      badge: './IMG_20251229_120150.jpg',
-      tag  : tag   || 'lm-admin',
-      url  : url   || './',
-      vibrate: [150, 60, 150]
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('[Push] send-to-user error:', err);
-    res.status(500).json({ message: 'Failed to send push' });
-  }
-});
-
-// ── POST /api/push/broadcast — send push to ALL subscribers ────────
-app.post('/api/push/broadcast', async (req, res) => {
-  try {
-    const { title, body, url, tag, requireInteraction } = req.body;
-    if (!title || !body) return res.status(400).json({ message: 'title and body required' });
-
-    const total = await PushSub.countDocuments();
-    await pushToAll({
-      title,
-      body,
-      icon : './IMG_20251229_120150.jpg',
-      badge: './IMG_20251229_120150.jpg',
-      tag  : tag || 'lm-broadcast',
-      url  : url || './',
-      vibrate: [200, 100, 200],
-      requireInteraction: !!requireInteraction
-    });
-
-    res.json({ success: true, sent: total });
-  } catch (err) {
-    console.error('[Push] broadcast error:', err);
-    res.status(500).json({ message: 'Broadcast failed' });
-  }
-});
-
-// ── GET /api/push/subscribers — admin: list subscription count ──────
-app.get('/api/push/subscribers', async (req, res) => {
-  try {
-    const total   = await PushSub.countDocuments();
-    const admins  = await PushSub.countDocuments({ isAdmin: true });
-    const users   = total - admins;
-    res.json({ total, users, admins });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch count' });
-  }
-});
-
-/* ── USER STATE ──────────────────────────────────────────────────────── */
+// --- USER STATE ---
 app.get('/api/user/state', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -379,8 +187,15 @@ app.put('/api/user/state', authMiddleware, async (req, res) => {
 });
 
 // --- LIVESTOCK ---
+// User-facing: only return Available livestock (not Sold / Draft / Hidden)
 app.get('/api/livestock', async (req, res) => {
-    try { const livestock = await Livestock.find({}, '-image'); res.json(livestock); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const livestock = await Livestock.find(
+            { status: { $in: ['Available', null, undefined] } },
+            { image: 0, 'images.data': 0 }
+        ).lean();
+        res.json(livestock);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/livestock/image/:id', async (req, res) => {
@@ -407,46 +222,104 @@ app.get('/api/livestock/image/:id/:index', async (req, res) => {
 
 // --- ADMIN ROUTES ---
 app.get('/api/admin/livestock', async (req, res) => {
-    try { const livestock = await Livestock.find({}, '-image').sort({ createdAt: -1 }); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
+    try { const livestock = await Livestock.find({}, { image: 0, 'images.data': 0 }).sort({ createdAt: -1 }).lean(); res.json({ livestock }); } catch (err) { res.status(500).json({ message: 'Failed', error: err.message }); }
 });
 
-// ðŸŸ¢ FIX APPLIED HERE: Added 'age' extraction and multiple images support
-app.post('/api/admin/livestock', upload.array('images', 10), async (req, res) => {
+// ✅ FIX: Handles BOTH single-item and multi-item (bulk) creation.
+// When admin selects 2+ items and submits, form fields arrive as arrays
+// (name[], type[], price[]…). The old code destructured these as plain
+// values and only saved ONE item. Now we detect arrays and save ALL items.
+app.post('/api/admin/livestock', upload.array('images', 50), async (req, res) => {
     try {
-        // Extract all necessary fields, including 'age' which was missing before
-        const { name, type, breed, price, tags, status, weight, age } = req.body;
+        const body = req.body;
 
-        // Handle multiple images
-        let images = [];
-        if (req.files && req.files.length > 0) {
-            images = req.files.map(file => ({
+        // Helper: normalise a field to always be an array, regardless of
+        // whether the form sent a single value or an array of values.
+        const toArray = (val) => {
+            if (val === undefined || val === null) return [];
+            return Array.isArray(val) ? val : [val];
+        };
+
+        const names    = toArray(body.name);
+        const types    = toArray(body.type);
+        const breeds   = toArray(body.breed);
+        const prices   = toArray(body.price);
+        const weights  = toArray(body.weight);
+        const ages     = toArray(body.age);
+        const statuses = toArray(body.status);
+        const tagsArr  = toArray(body.tags);
+
+        // Number of items to create = length of the longest field array
+        const itemCount = Math.max(names.length, types.length, breeds.length, prices.length, 1);
+
+        // Group uploaded files by item index.
+        // Admin uploads are expected in order: all images for item 0 first,
+        // then all images for item 1, etc.  We distribute them evenly; if the
+        // counts don't divide evenly, every item at least gets its own first file.
+        const files = req.files || [];
+        // If the form sends a per-file "itemIndex" field, use it; otherwise
+        // fall back to splitting files evenly across items.
+        const filesPerItem = itemCount > 0 ? Math.ceil(files.length / itemCount) : files.length;
+
+        const getFilesForItem = (idx) => {
+            // If files carry an explicit itemIndex field honour it.
+            // (Multer puts extra non-file fields in req.body, but individual
+            //  file fields aren't available this way — so we use positional split.)
+            const start = idx * filesPerItem;
+            const end   = Math.min(start + filesPerItem, files.length);
+            return files.slice(start, end);
+        };
+
+        const createdItems = [];
+
+        for (let i = 0; i < itemCount; i++) {
+            const itemFiles = getFilesForItem(i);
+
+            let images = itemFiles.map(file => ({
                 data: file.buffer,
                 contentType: file.mimetype
             }));
+
+            // If no files for this specific item but there IS a shared first
+            // file (single-image form), give every item that image.
+            if (images.length === 0 && files.length > 0 && itemCount === 1) {
+                images = files.map(f => ({ data: f.buffer, contentType: f.mimetype }));
+            }
+
+            const image = images.length > 0 ? images[0] : undefined;
+
+            const rawTags = tagsArr[i] ?? tagsArr[0] ?? '';
+            const tagArray = typeof rawTags === 'string' ? rawTags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+            const w   = weights[i]  ?? weights[0]  ?? '';
+            const a   = ages[i]     ?? ages[0]     ?? '';
+            const st  = statuses[i] ?? statuses[0] ?? 'Available';
+
+            const newItem = new Livestock({
+                name   : names[i]   ?? names[0]   ?? 'Unnamed',
+                type   : types[i]   ?? types[0]   ?? 'Other',
+                breed  : breeds[i]  ?? breeds[0]  ?? 'Unknown',
+                age    : a  || (w ? `${w} kg` : 'N/A'),
+                weight : w  || 'N/A',
+                price  : parseFloat(prices[i] ?? prices[0]) || 0,
+                tags   : tagArray,
+                status : st,
+                image,
+                images
+            });
+
+            await newItem.save();
+            createdItems.push(newItem);
         }
 
-        // Backward compatibility: use first image as main image
-        const image = images.length > 0 ? images[0] : undefined;
+        // Return array when multiple items were created, single object otherwise
+        // (keeps existing admin-app code that expects a single object working).
+        if (createdItems.length === 1) {
+            res.status(201).json(createdItems[0]);
+        } else {
+            res.status(201).json(createdItems);
+        }
 
-        let tagArray = tags && typeof tags === 'string' ? tags.split(',') : [];
-
-        // Construct new item including 'age' and multiple images
-        // If 'age' is not provided, we try to derive it from 'weight' as a fallback string
-        const newItem = new Livestock({
-            name,
-            type,
-            breed,
-            age: age || (weight ? `${weight} kg` : "N/A"),
-            weight: weight || "N/A",
-            price: parseFloat(price) || 0,
-            tags: tagArray,
-            status: status || 'Available',
-            image,
-            images
-        });
-
-        await newItem.save();
-        res.status(201).json(newItem);
     } catch (err) {
         console.error("Livestock Create Error:", err);
         res.status(500).json({ error: err.message });
@@ -473,6 +346,54 @@ app.put('/api/admin/livestock/:id', upload.array('images', 10), async (req, res)
     } catch (err) { res.status(500).json({ message: 'Update failed', error: err.message }); }
 });
 
+// ✅ NEW: Bulk status update — called when admin selects multiple items
+// and clicks Publish / Unpublish / Mark Sold, etc.
+// Body: { ids: ["id1","id2",...], status: "Available" }
+app.put('/api/admin/livestock/bulk-status', async (req, res) => {
+    try {
+        const { ids, status } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'ids array is required' });
+        }
+        const validStatuses = ['Available', 'Sold', 'Draft', 'Hidden'];
+        const newStatus = validStatuses.includes(status) ? status : 'Available';
+
+        const result = await Livestock.updateMany(
+            { _id: { $in: ids } },
+            { $set: { status: newStatus } }
+        );
+
+        res.json({
+            success: true,
+            updated: result.modifiedCount,
+            message: `${result.modifiedCount} item(s) marked as ${newStatus}`
+        });
+    } catch (err) {
+        console.error('Bulk status update error:', err);
+        res.status(500).json({ message: 'Bulk update failed', error: err.message });
+    }
+});
+
+// ✅ NEW: Bulk delete selected livestock items
+// Body: { ids: ["id1","id2",...] }
+app.delete('/api/admin/livestock/bulk', async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'ids array is required' });
+        }
+        const result = await Livestock.deleteMany({ _id: { $in: ids } });
+        res.json({
+            success: true,
+            deleted: result.deletedCount,
+            message: `${result.deletedCount} item(s) deleted`
+        });
+    } catch (err) {
+        console.error('Bulk delete error:', err);
+        res.status(500).json({ message: 'Bulk delete failed', error: err.message });
+    }
+});
+
 app.delete('/api/admin/livestock/:id', async (req, res) => {
     try { await Livestock.findByIdAndDelete(req.params.id); res.status(204).send(); } catch (err) { res.status(500).json({ message: 'Delete failed', error: err.message }); }
 });
@@ -482,7 +403,7 @@ app.get('/api/admin/orders', async (req, res) => {
         // Trigger lazy cleanup on fetch to ensure admin sees up-to-date states
         await expireUnpaidOrders();
         // Exclude image data for performance
-        const orders = await Order.find({}, '-paymentProof.data').sort({ createdAt: -1 });
+        const orders = await Order.find({}, '-paymentProof.data').sort({ createdAt: -1 }).lean();
         res.json({ orders });
     } catch (err) { res.status(500).json({ message: 'Failed to load orders', error: err.message }); }
 });
@@ -522,17 +443,7 @@ app.put('/api/admin/orders/:id/reject', async (req, res) => {
             );
         }
 
-        // 3. Notify User via real push + in-app notification
-        await pushToUser(order.userId, {
-          title  : '❌ Payment Rejected',
-          body   : `Order #${order._id.toString().slice(-6)}: ${reason || 'Invalid payment proof.'}. Items restocked.`,
-          icon   : './IMG_20251229_120150.jpg',
-          badge  : './IMG_20251229_120150.jpg',
-          tag    : 'lm-order-' + order._id,
-          url    : './index.html',
-          vibrate: [200, 100, 200],
-          requireInteraction: true
-        });
+        // 3. Notify User
         await User.findByIdAndUpdate(order.userId, { 
             $push: { notifications: {
                 id: 'rej_' + Date.now(), 
@@ -555,42 +466,6 @@ app.put('/api/admin/orders/:id/reject', async (req, res) => {
 app.put('/api/admin/orders/:id', async (req, res) => {
     try {
         const order = await Order.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
-        if (!order) return res.status(404).json({ message: 'Order not found' });
-
-        // Send real push notification to the user
-        const statusEmoji = {
-          'Processing' : '⏳', 'Shipped' : '🚚', 'Delivered' : '✅',
-          'Cancelled'  : '❌', 'Payment Rejected': '❌'
-        }[req.body.status] || '📦';
-
-        await pushToUser(order.userId, {
-          title  : `${statusEmoji} Order ${req.body.status}`,
-          body   : `Order #${order._id.toString().slice(-6)} is now ${req.body.status}.`,
-          icon   : './IMG_20251229_120150.jpg',
-          badge  : './IMG_20251229_120150.jpg',
-          tag    : 'lm-order-' + order._id,
-          url    : './index.html',
-          vibrate: [150, 60, 150],
-          requireInteraction: req.body.status === 'Delivered',
-          actions: [
-            { action: 'view-order', title: '👁 View Order' },
-            { action: 'dismiss',    title: 'Dismiss' }
-          ]
-        });
-
-        // Also notify in-app
-        await User.findByIdAndUpdate(order.userId, {
-          $push: { notifications: {
-            id       : 'status_' + Date.now(),
-            title    : 'Order Status Update',
-            message  : `Order #${order._id.toString().slice(-6)} is now ${req.body.status}.`,
-            icon     : 'package',
-            color    : req.body.status === 'Delivered' ? 'green' : 'blue',
-            timestamp: Date.now(),
-            seen     : false
-          }}
-        });
-
         res.json(order);
     } catch (err) { res.status(500).json({ message: 'Update failed', error: err.message }); }
 });
@@ -612,7 +487,7 @@ app.delete('/api/admin/notifications/clear', async (req, res) => {
 
 // --- ORDER ROUTES ---
 app.get('/api/orders', authMiddleware, async (req, res) => {
-    try { const orders = await Order.find({ userId: req.user.id }, '-paymentProof.data').sort({ createdAt: -1 }); res.json(orders); } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const orders = await Order.find({ userId: req.user.id }, '-paymentProof.data').sort({ createdAt: -1 }).lean(); res.json(orders); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // RE-UPLOAD PROOF (With Duplicate Check & Admin Notif)
@@ -642,21 +517,11 @@ app.put('/api/orders/:id/reupload', authMiddleware, upload.single('paymentProof'
             { upsert: true, new: true }
         );
 
-        // Notify admin via DB + real push
+        // ðŸ”” NOTIFY ADMIN
         await AdminNotification.create({
             message: `Proof Re-uploaded for Order #${order._id.toString().slice(-6)} by ${req.user.name}`,
             type: 'info',
             orderId: order._id
-        });
-        await pushToAdmins({
-          title  : '📎 Proof Re-uploaded',
-          body   : `Order #${order._id.toString().slice(-6)} by ${req.user.name} — new payment proof ready for review.`,
-          icon   : './IMG_20251229_120150.jpg',
-          badge  : './IMG_20251229_120150.jpg',
-          tag    : 'lm-proof-' + order._id,
-          url    : './admin.html',
-          vibrate: [150, 60, 150],
-          requireInteraction: true
         });
         
         res.json({ success: true, message: 'Proof re-uploaded successfully' });
@@ -692,25 +557,11 @@ app.post('/api/orders', authMiddleware, upload.single('paymentProof'), async (re
 
         if (fileHash) {
             await ProofHash.create({ hash: fileHash, orderId: newOrder._id });
+             // ðŸ”” NOTIFY ADMIN
             await AdminNotification.create({
                 message: `New Order #${newOrder._id.toString().slice(-6)} Created with Proof`,
                 type: 'success',
                 orderId: newOrder._id
-            });
-            // Real push notification to all admin devices
-            await pushToAdmins({
-              title  : '🛒 New Order Received!',
-              body   : `Order #${newOrder._id.toString().slice(-6)} from ${req.user.name} — ₹${total}. Review payment proof.`,
-              icon   : './IMG_20251229_120150.jpg',
-              badge  : './IMG_20251229_120150.jpg',
-              tag    : 'lm-neworder-' + newOrder._id,
-              url    : './admin.html',
-              vibrate: [200, 100, 200],
-              requireInteraction: true,
-              actions: [
-                { action: 'view-order', title: '👁 View', orderUrl: './admin.html' },
-                { action: 'dismiss',    title: 'Dismiss' }
-              ]
             });
         }
 
