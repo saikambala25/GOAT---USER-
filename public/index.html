@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -49,156 +49,186 @@
         .auth-card.show-register .auth-panel-login { transform: translateX(-100%); opacity: 0; pointer-events: none; }
         .auth-card.show-register .auth-panel-register { transform: translateX(0); opacity: 1; pointer-events: auto; position: relative; }
         
-        /* ── BOTTOM NAV SYSTEM ──────────────────────────────── */
-        #lm-bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-            height: 68px;
-            background: rgba(10, 15, 20, 0.92);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border-top: 1px solid rgba(16,185,129,0.12);
-            display: flex; align-items: stretch;
-            padding: 0 4px;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-            box-shadow: 0 -8px 40px rgba(0,0,0,0.4), 0 -1px 0 rgba(16,185,129,0.08);
+        #sidebar { transition: transform 0.3s ease-in-out; }
+
+        /* ═══════════════════════════════════════════════
+           MOBILE BOTTOM NAV BAR  (Flipkart / Amazon style)
+        ═══════════════════════════════════════════════ */
+        #mob-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 500;
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
+            height: 62px;
+            align-items: stretch;
         }
-        .lm-nav-btn {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 4px; padding: 6px 2px; border: none; background: transparent;
-            cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
-            border-radius: 0; -webkit-tap-highlight-color: transparent;
-            min-width: 0;
+        .dark #mob-bottom-nav {
+            background: #1f2937;
+            border-top-color: #374151;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.35);
         }
-        .lm-nav-btn .nav-icon-wrap {
-            position: relative; width: 36px; height: 28px;
+        @media (max-width: 767px) { #mob-bottom-nav { display: flex; } }
+        @media (min-width: 768px) { #mob-bottom-nav { display: none !important; } }
+
+        .mbn-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 6px 2px 8px;
+            position: relative;
+            transition: color .18s, background .18s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .dark .mbn-tab { color: #9ca3af; }
+        .mbn-tab:active { background: rgba(16,185,129,.07); }
+
+        .mbn-tab .mbn-icon-wrap {
+            position: relative;
+            width: 26px; height: 26px;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 12px; transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
         }
-        .lm-nav-btn svg { width: 20px; height: 20px; transition: all 0.25s ease; color: #6b7280; }
-        .lm-nav-btn .nav-label {
-            font-size: 10px; font-weight: 500; color: #6b7280;
-            transition: all 0.2s ease; letter-spacing: 0.01em;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-        }
-        .lm-nav-btn .nav-badge {
-            position: absolute; top: -4px; right: -4px;
-            background: #ef4444; color: #fff; font-size: 9px; font-weight: 700;
-            min-width: 16px; height: 16px; padding: 0 4px;
-            border-radius: 999px; display: none; align-items: center; justify-content: center;
-            border: 2px solid rgba(10,15,20,0.92); line-height: 1;
-        }
-        .lm-nav-btn.active svg { color: #10b981; }
-        .lm-nav-btn.active .nav-label { color: #10b981; font-weight: 700; }
-        .lm-nav-btn.active .nav-icon-wrap {
-            background: rgba(16,185,129,0.15);
-            transform: translateY(-3px) scale(1.08);
-        }
-        .lm-nav-btn:active { transform: scale(0.92); }
+        .mbn-tab svg { width: 22px; height: 22px; transition: transform .2s; }
+        .mbn-tab.mbn-active svg { transform: scale(1.12); }
 
-        /* Centre FAB browse button */
-        .lm-nav-btn.nav-center .nav-icon-wrap {
-            width: 48px; height: 48px; border-radius: 16px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            box-shadow: 0 4px 20px rgba(16,185,129,0.5);
-            margin-top: -12px;
-            transform: translateY(-6px);
+        /* Active: icon turns green + label bold + top pill indicator */
+        .mbn-tab.mbn-active { color: #059669; font-weight: 700; }
+        .dark .mbn-tab.mbn-active { color: #34d399; }
+        .mbn-tab.mbn-active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 36px; height: 3px;
+            background: #059669;
+            border-radius: 0 0 4px 4px;
         }
-        .lm-nav-btn.nav-center svg { color: #fff; width: 22px; height: 22px; }
-        .lm-nav-btn.nav-center .nav-label { color: #10b981; font-weight: 700; }
-        .lm-nav-btn.nav-center.active .nav-icon-wrap {
-            background: linear-gradient(135deg, #059669, #047857);
-            box-shadow: 0 6px 28px rgba(16,185,129,0.65);
-            transform: translateY(-8px) scale(1.08);
-        }
+        .dark .mbn-tab.mbn-active::before { background: #34d399; }
 
-        /* More drawer overlay */
-        #lm-more-drawer {
-            position: fixed; inset: 0; z-index: 199;
-            pointer-events: none; opacity: 0; transition: opacity 0.25s ease;
+        /* Badge on icon */
+        .mbn-badge {
+            position: absolute;
+            top: -5px; right: -7px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            min-width: 16px; height: 16px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px;
+            line-height: 1;
+            border: 1.5px solid #fff;
         }
-        #lm-more-drawer.open { pointer-events: all; opacity: 1; }
-        #lm-more-drawer-bg {
-            position: absolute; inset: 0;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        .dark .mbn-badge { border-color: #1f2937; }
+        .mbn-badge.pink { background: #ec4899; }
+        .mbn-badge.hidden { display: none; }
+
+        /* ── More / Drawer ───────────────────────────── */
+        #mob-more-backdrop {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 600;
+            backdrop-filter: blur(2px);
         }
-        #lm-more-panel {
-            position: absolute; bottom: 68px; left: 0; right: 0;
-            background: #0f1923;
-            border-top: 1px solid rgba(16,185,129,0.15);
-            border-radius: 28px 28px 0 0;
-            padding: 16px 16px 8px;
+        #mob-more-backdrop.open { display: block; }
+
+        #mob-more-drawer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 601;
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+            padding: 0 0 calc(env(safe-area-inset-bottom) + 8px);
             transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
-            box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+            transition: transform .32s cubic-bezier(.22,.68,0,1.15);
         }
-        #lm-more-drawer.open #lm-more-panel { transform: translateY(0); }
-        .lm-more-handle {
-            width: 36px; height: 4px; background: rgba(255,255,255,0.15);
-            border-radius: 2px; margin: 0 auto 16px;
+        .dark #mob-more-drawer {
+            background: #1f2937;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.45);
         }
-        .lm-more-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .lm-more-item {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            padding: 14px 8px 10px; border-radius: 16px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            cursor: pointer; transition: all 0.2s ease;
+        #mob-more-drawer.open { transform: translateY(0); }
+
+        .mob-drawer-handle {
+            width: 40px; height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 12px auto 4px;
+        }
+        .dark .mob-drawer-handle { background: #4b5563; }
+
+        .mob-drawer-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #9ca3af;
+            padding: 8px 20px 6px;
+        }
+
+        .mob-drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            padding: 6px 12px 12px;
+        }
+
+        .mob-drawer-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 8px 12px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #374151;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 14px;
+            transition: background .15s, color .15s;
             -webkit-tap-highlight-color: transparent;
         }
-        .lm-more-item:active { transform: scale(0.94); background: rgba(16,185,129,0.12); }
-        .lm-more-item svg { width: 22px; height: 22px; color: #9ca3af; }
-        .lm-more-item span { font-size: 10px; color: #9ca3af; font-weight: 500; text-align: center; }
-        .lm-more-item.active-item svg { color: #10b981; }
-        .lm-more-item.active-item span { color: #10b981; }
-        .lm-more-item.active-item { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); }
+        .dark .mob-drawer-item { color: #d1d5db; }
+        .mob-drawer-item:active,
+        .mob-drawer-item:hover { background: #f0fdf4; color: #059669; }
+        .dark .mob-drawer-item:active,
+        .dark .mob-drawer-item:hover { background: rgba(52,211,153,.1); color: #34d399; }
 
-        /* Top app bar */
-        #lm-topbar {
-            position: sticky; top: 0; z-index: 50;
-            background: rgba(10,15,20,0.92);
-            backdrop-filter: blur(20px) saturate(150%);
-            -webkit-backdrop-filter: blur(20px) saturate(150%);
-            border-bottom: 1px solid rgba(16,185,129,0.1);
-            padding: 12px 16px;
-            display: flex; align-items: center; gap: 12px;
-            flex-shrink: 0;
-        }
-        #lm-topbar .topbar-logo {
-            width: 34px; height: 34px; border-radius: 10px; overflow: hidden;
-            border: 1.5px solid rgba(16,185,129,0.3); flex-shrink: 0;
-        }
-        #lm-topbar .topbar-logo img { width: 100%; height: 100%; object-fit: cover; }
-        #lm-topbar .topbar-title {
-            flex: 1; font-size: 17px; font-weight: 800; color: #fff;
-            letter-spacing: -0.3px;
-        }
-        #lm-topbar .topbar-title span { color: #10b981; }
-        .topbar-action {
-            width: 38px; height: 38px; border-radius: 12px; border: none;
-            background: rgba(255,255,255,0.06); cursor: pointer;
+        .mob-drawer-item .mob-di-icon {
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            background: #f3f4f6;
             display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s; position: relative;
-            -webkit-tap-highlight-color: transparent;
+            transition: background .15s;
         }
-        .topbar-action:active { background: rgba(16,185,129,0.15); }
-        .topbar-action svg { width: 18px; height: 18px; color: #d1d5db; }
+        .dark .mob-drawer-item .mob-di-icon { background: #374151; }
+        .mob-drawer-item:hover .mob-di-icon,
+        .mob-drawer-item:active .mob-di-icon { background: #d1fae5; }
+        .dark .mob-drawer-item:hover .mob-di-icon,
+        .dark .mob-drawer-item:active .mob-di-icon { background: rgba(52,211,153,.18); }
+        .mob-drawer-item svg { width: 22px; height: 22px; color: #059669; }
+        .dark .mob-drawer-item svg { color: #34d399; }
 
-        /* Content safe area for bottom nav */
-        #content-area { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
-
-        /* Page title bar below topbar */
-        #lm-page-title-bar {
-            padding: 8px 16px 0; flex-shrink: 0;
+        /* Push content up so bottom nav doesn't cover it on mobile */
+        @media (max-width: 767px) {
+            #content-area { padding-bottom: 80px !important; }
         }
-        #page-title-display {
-            font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px;
-        }
-        #page-subtitle-display { font-size: 12px; color: #6b7280; margin-top: 1px; }
-
-        /* Dark mode adjustments for content */
-        body { background: #0a0f14; }
-        #user-app { background: #0a0f14; }
-        #content-area { background: #0a0f14 !important; }
         
         .lm-flyin { transform: translateY(18px); opacity: 0; transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 360ms; }
         .lm-flyin.lm-show { transform: translateY(0); opacity: 1; }
@@ -410,7 +440,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     
 </head>
-<body class="dark" style="background:#0a0f14;color:#f1f5f9;height:100dvh;overflow:hidden;">
+<body class="h-screen bg-gray-900 text-gray-100 overflow-hidden transition-colors duration-200">
     
     <div id="pull-refresh-indicator">
         <div class="spinner"></div>
@@ -425,7 +455,8 @@
         <div class="lm-lb-counter" id="lm-lb-counter"></div>
     </div>
 
-    
+    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
     <div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none"></div>
 
 <!-- ═══════════════════════════════════════════
@@ -485,41 +516,6 @@
 @keyframes chipPop   { from{opacity:0;transform:translateX(-50%) scale(.6)} to{opacity:1;transform:translateX(-50%) scale(1)} }
 @keyframes pwaSlideUp{ from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
 @keyframes pwaSlideDown{from{transform:translateY(0);opacity:1} to{transform:translateY(110%);opacity:0}}
-
-        /* ── GLOBAL DARK THEME REFRESH ─────────────────────────── */
-        .dark .ud-skeleton, .ud-skeleton {
-            background: linear-gradient(90deg, #1e293b 25%, #2d3f55 50%, #1e293b 75%);
-            background-size: 600px 100%;
-        }
-        /* Cards dark */
-        #content-area .bg-white { background: #111c2b !important; }
-        #content-area .dark\:bg-gray-800 { background: #111c2b !important; }
-        #content-area .border-gray-200 { border-color: rgba(255,255,255,0.07) !important; }
-        #content-area .dark\:border-gray-700 { border-color: rgba(255,255,255,0.07) !important; }
-        #content-area .text-gray-800 { color: #f1f5f9 !important; }
-        #content-area .text-gray-500 { color: #94a3b8 !important; }
-        #content-area .text-gray-400 { color: #64748b !important; }
-        #content-area .bg-gray-50 { background: #0d1520 !important; }
-        #content-area .dark\:bg-gray-900 { background: #0a0f14 !important; }
-        /* Inputs */
-        #content-area input, #content-area textarea, #content-area select {
-            background: #1a2535 !important;
-            border-color: rgba(255,255,255,0.1) !important;
-            color: #f1f5f9 !important;
-        }
-        /* Force dark on auth modals */
-        .auth-glass { background: rgba(10,15,20,0.97) !important; }
-        /* Page title bar */
-        #lm-page-title-bar { background: #0a0f14; padding: 6px 16px 10px; }
-        /* Notification menu dark */
-        #notification-menu { color: #f1f5f9; }
-        #notification-menu .text-gray-800 { color: #f1f5f9 !important; }
-        #notification-menu .text-gray-500 { color: #94a3b8 !important; }
-        /* More drawer item hover */
-        .lm-more-item:hover { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.15); }
-        .lm-more-item:hover svg { color: #10b981; }
-        .lm-more-item:hover span { color: #10b981; }
-
 </style>
 
     
@@ -760,9 +756,6 @@
         <main id="main-content" class="flex-1 flex flex-col relative overflow-hidden w-full h-full">
             <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 py-4 flex justify-between items-center z-10 sticky top-0 flex-shrink-0 transition-colors">
     <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
-        <button onclick="toggleSidebar()" class="md:hidden text-gray-600 dark:text-gray-300 hover:text-green-600 flex-shrink-0">
-            <i data-lucide="menu" class="w-6 h-6"></i>
-        </button>
         <div class="overflow-hidden">
             <h1 id="page-title" class="text-lg md:text-2xl font-bold text-gray-800 dark:text-white truncate">My Dashboard</h1>
             <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:block" id="current-date"></p>
@@ -822,6 +815,105 @@
     </div>
 </header>
             
+            <!-- ════════════════════════════════════════════════════
+                 MOBILE BOTTOM NAV BAR  (Flipkart / Amazon style)
+                 Visible only on < 768 px
+            ════════════════════════════════════════════════════ -->
+
+            <!-- More-menu backdrop -->
+            <div id="mob-more-backdrop" onclick="closeMobMore()"></div>
+
+            <!-- More-menu slide-up drawer -->
+            <div id="mob-more-drawer" role="dialog" aria-label="More options">
+                <div class="mob-drawer-handle"></div>
+                <p class="mob-drawer-title">More</p>
+                <div class="mob-drawer-grid">
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('wishlist')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </span>
+                        <span class="lang-wishlist">Wishlist</span>
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('addresses')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </span>
+                        <span class="lang-addresses">Addresses</span>
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('profile')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </span>
+                        Profile
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('support')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0118 0v6"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+                        </span>
+                        <span class="lang-support">Support</span>
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('about')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
+                        </span>
+                        <span class="lang-about">About</span>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Fixed Bottom Nav Bar -->
+            <nav id="mob-bottom-nav" aria-label="Main navigation">
+
+                <!-- Browse / Home -->
+                <button class="mbn-tab mbn-active" id="mbn-browse" onclick="router('browse')" aria-label="Browse Livestock">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5v-6h4v6h5a1 1 0 001-1V10"/></svg>
+                    </span>
+                    <span class="lang-browse">Home</span>
+                </button>
+
+                <!-- My Orders -->
+                <button class="mbn-tab" id="mbn-orders" onclick="router('orders')" aria-label="My Orders">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </span>
+                    <span class="lang-orders">Orders</span>
+                </button>
+
+                <!-- My Dashboard — centre tab -->
+                <button class="mbn-tab" id="mbn-dashboard" onclick="router('dashboard')" aria-label="My Dashboard">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                    </span>
+                    <span class="lang-dashboard">Dashboard</span>
+                </button>
+
+                <!-- Cart — right of Dashboard -->
+                <button class="mbn-tab" id="mbn-cart" onclick="router('cart')" aria-label="Cart">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 7h13M7 13l-1-5m10 5l1-5"/></svg>
+                        <span id="mbn-cart-badge" class="mbn-badge hidden">0</span>
+                    </span>
+                    <span class="lang-cart">Cart</span>
+                </button>
+
+                <!-- More -->
+                <button class="mbn-tab" id="mbn-more" onclick="openMobMore()" aria-label="More options">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </span>
+                    More
+                </button>
+
+            </nav>
+            <!-- ════════════════════════════════════════════════════ -->
+
             <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 dark:bg-gray-900 hide-scrollbar relative pb-24 transition-colors">
                 
                 <!-- ╔══════════════════════════════════════════╗ -->
@@ -1320,93 +1412,6 @@
                 </div>
             </div>
         </main>
-
-        <!-- ═══ BOTTOM NAVIGATION BAR ══════════════════════════════ -->
-        <nav id="lm-bottom-nav">
-            <!-- Home/Browse -->
-            <button class="lm-nav-btn nav-item active" id="nav-browse" onclick="router('browse')" aria-label="Browse">
-                <div class="nav-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                </div>
-                <span class="nav-label">Home</span>
-            </button>
-
-            <!-- Orders -->
-            <button class="lm-nav-btn nav-item" id="nav-orders" onclick="router('orders')" aria-label="Orders">
-                <div class="nav-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
-                </div>
-                <span class="nav-label">Orders</span>
-            </button>
-
-            <!-- Browse (Centre FAB) -->
-            <button class="lm-nav-btn nav-item nav-center" id="nav-dashboard" onclick="router('dashboard')" aria-label="Dashboard">
-                <div class="nav-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                </div>
-                <span class="nav-label">Dash</span>
-            </button>
-
-            <!-- Cart -->
-            <button class="lm-nav-btn nav-item" id="nav-cart" onclick="router('cart')" aria-label="Cart">
-                <div class="nav-icon-wrap" style="position:relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                    <span id="cart-badge" class="nav-badge" style="position:absolute;top:-6px;right:-6px;display:none;">0</span>
-                    <span id="header-cart-badge" class="hidden">0</span>
-                </div>
-                <span class="nav-label">Cart</span>
-            </button>
-
-            <!-- More -->
-            <button class="lm-nav-btn" id="nav-more" onclick="toggleMoreDrawer()" aria-label="More">
-                <div class="nav-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
-                </div>
-                <span class="nav-label">More</span>
-            </button>
-        </nav>
-
-        <!-- ═══ MORE DRAWER ══════════════════════════════════════════ -->
-        <div id="lm-more-drawer" onclick="handleMoreDrawerClick(event)">
-            <div id="lm-more-drawer-bg"></div>
-            <div id="lm-more-panel">
-                <div class="lm-more-handle"></div>
-                <div class="lm-more-grid">
-                    <div class="lm-more-item nav-item" id="drawer-wishlist" onclick="router('wishlist');closeMoreDrawer()">
-                        <div style="position:relative">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                            <span id="wishlist-badge" class="nav-badge" style="position:absolute;top:-6px;right:-6px;display:none;align-items:center;justify-content:center;background:#ec4899;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 3px;border-radius:999px;">0</span>
-                        </div>
-                        <span>Wishlist</span>
-                    </div>
-                    <div class="lm-more-item nav-item" id="drawer-addresses" onclick="router('addresses');closeMoreDrawer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span>Address</span>
-                    </div>
-                    <div class="lm-more-item nav-item" id="drawer-profile" onclick="router('profile');closeMoreDrawer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <span>Profile</span>
-                    </div>
-                    <div class="lm-more-item nav-item" id="drawer-support" onclick="router('support');closeMoreDrawer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-                        <span>Support</span>
-                    </div>
-                    <div class="lm-more-item nav-item" id="drawer-about" onclick="router('about');closeMoreDrawer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        <span>About</span>
-                    </div>
-                    <div class="lm-more-item" onclick="toggleDarkMode();closeMoreDrawer()" id="drawer-theme">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                        <span>Theme</span>
-                    </div>
-                    <div class="lm-more-item" onclick="handleLogout();closeMoreDrawer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:#f87171"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                        <span style="color:#f87171">Logout</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
     
     <script>
@@ -1570,7 +1575,30 @@ function isSessionStillValid() {
             }
         }
 
-        function toggleSidebar() { /* Sidebar removed — using bottom nav */ }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        /* ── Mobile More Drawer ─────────────────────── */
+        function openMobMore() {
+            document.getElementById('mob-more-backdrop').classList.add('open');
+            document.getElementById('mob-more-drawer').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMobMore() {
+            document.getElementById('mob-more-backdrop').classList.remove('open');
+            document.getElementById('mob-more-drawer').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        /* ─────────────────────────────────────────────── */
         
         let previousLivestockCount = parseInt(localStorage.getItem('lm_prev_ls_count') || '0');
         let previousOrdersSnapshot = localStorage.getItem('lm_prev_orders_snap') || '[]';
@@ -1625,47 +1653,6 @@ function isSessionStillValid() {
             notifications.forEach(n => n.seen = true);
             await saveNotifications();
             updateNotificationBadge();
-        }
-
-        /* ── BOTTOM NAV HELPERS ─────────────────────────────── */
-        const BOTTOM_NAV_MAP = {
-            browse: 'nav-browse', dashboard: 'nav-dashboard',
-            cart: 'nav-cart', orders: 'nav-orders'
-        };
-        const DRAWER_NAV_MAP = {
-            wishlist: 'drawer-wishlist', addresses: 'drawer-addresses',
-            profile: 'drawer-profile', support: 'drawer-support', about: 'drawer-about'
-        };
-
-        function updateBottomNavActive(viewName) {
-            // Reset all bottom nav buttons
-            document.querySelectorAll('#lm-bottom-nav .lm-nav-btn').forEach(b => b.classList.remove('active'));
-            // Reset all drawer items
-            document.querySelectorAll('.lm-more-item.nav-item').forEach(b => b.classList.remove('active-item'));
-
-            if (BOTTOM_NAV_MAP[viewName]) {
-                const btn = document.getElementById(BOTTOM_NAV_MAP[viewName]);
-                if (btn) btn.classList.add('active');
-            } else if (DRAWER_NAV_MAP[viewName]) {
-                const item = document.getElementById(DRAWER_NAV_MAP[viewName]);
-                if (item) item.classList.add('active-item');
-                // Also highlight "more" button
-                const moreBtn = document.getElementById('nav-more');
-                if (moreBtn) moreBtn.classList.add('active');
-            }
-        }
-
-        function toggleMoreDrawer() {
-            const drawer = document.getElementById('lm-more-drawer');
-            drawer.classList.toggle('open');
-        }
-        function closeMoreDrawer() {
-            document.getElementById('lm-more-drawer').classList.remove('open');
-        }
-        function handleMoreDrawerClick(e) {
-            if (e.target === document.getElementById('lm-more-drawer-bg') || e.target === document.getElementById('lm-more-drawer')) {
-                closeMoreDrawer();
-            }
         }
 
         function updateNotificationBadge() {
@@ -1808,16 +1795,13 @@ function isSessionStillValid() {
             const auth = document.getElementById('auth-screen');
             const app = document.getElementById('user-app');
             if (auth) auth.classList.remove('hidden');
-            if (app) app.style.display = 'none';
+            if (app) app.classList.add('hidden');
         }
         function showApp() {
             const auth = document.getElementById('auth-screen');
             const app = document.getElementById('user-app');
             if (auth) auth.classList.add('hidden');
-            if (app) {
-                app.style.display = 'flex';
-                app.style.flexDirection = 'column';
-            }
+            if (app) app.classList.remove('hidden');
             if (!appInitialized) {
                 initApp();
             }
@@ -2119,24 +2103,44 @@ function isSessionStillValid() {
             const activeView = document.getElementById(`view-${viewName}`);
             if (activeView) activeView.classList.remove('hidden');
             
-            // Bottom Nav Active State
-            updateBottomNavActive(viewName);
+            // Sidebar Active State
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                if (viewName === 'summary') return; 
+                if (btn.getAttribute('onclick').includes(viewName)) {
+                    btn.classList.add('bg-green-600', 'text-white');
+                    btn.classList.remove('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
+                } else {
+                    btn.classList.remove('bg-green-600', 'text-white');
+                    btn.classList.add('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
+                }
+            });
 
-            // Update page title bar
-            const titleMap = {
-                browse:'Browse Livestock', dashboard:'My Dashboard', cart:'Shopping Cart',
-                orders:'My Orders', wishlist:'Wishlist', addresses:'Addresses',
-                profile:'Profile', support:'Support', about:'About', summary:'Order Summary'
-            };
-            const titleEl = document.getElementById('page-title-display');
-            const subtitleEl = document.getElementById('page-subtitle-display');
-            if (titleEl) titleEl.textContent = titleMap[viewName] || viewName.charAt(0).toUpperCase()+viewName.slice(1);
-            if (subtitleEl) {
-                const d = new Date();
-                subtitleEl.textContent = d.toLocaleDateString('en-IN', { weekday:'long', month:'short', day:'numeric' });
+            // Mobile Bottom Nav Active State
+            const mbnTabs = ['browse','orders','dashboard','cart'];
+            mbnTabs.forEach(id => {
+                const el = document.getElementById('mbn-' + id);
+                if (!el) return;
+                if (id === viewName && viewName !== 'summary') {
+                    el.classList.add('mbn-active');
+                } else {
+                    el.classList.remove('mbn-active');
+                }
+            });
+            // Deactivate More tab if a primary tab is active
+            const moreTab = document.getElementById('mbn-more');
+            if (moreTab) {
+                const isMoreView = !mbnTabs.includes(viewName) && viewName !== 'summary';
+                moreTab.classList.toggle('mbn-active', isMoreView);
             }
 
             applyTranslations(); // Update title and dynamic text
+
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
             
             if (viewName === 'dashboard') renderDashboard();
             if (viewName === 'browse') renderBrowse();
@@ -3098,19 +3102,23 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
 
         function updateCartBadge() {
-            const badge = document.getElementById('cart-badge');
-            if (badge) {
-                badge.textContent = cart.length;
-                badge.style.display = cart.length > 0 ? 'flex' : 'none';
-            }
+            const badges = [document.getElementById('cart-badge'), document.getElementById('header-cart-badge'), document.getElementById('mbn-cart-badge')];
+            badges.forEach(b => {
+                if (!b) return;
+                b.innerText = cart.length;
+                if (cart.length > 0) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
         }
         
         function updateWishlistBadge() {
-            const badge = document.getElementById('wishlist-badge');
-            if (!badge) return;
             const count = getVisibleWishlistCount();
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'flex' : 'none';
+            [document.getElementById('wishlist-badge')].forEach(b => {
+                if (!b) return;
+                b.innerText = count;
+                if (count > 0) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
         }
 
         function getStatusColor(status) {
@@ -3133,7 +3141,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             if (dateEl) {
                 dateEl.innerText = new Date().toLocaleDateString('en-IN', dateOptions);
             }
-            router('browse');
+            router('dashboard');
             
             autoRefreshInterval = setInterval(() => {
                 loadData();
