@@ -50,6 +50,185 @@
         .auth-card.show-register .auth-panel-register { transform: translateX(0); opacity: 1; pointer-events: auto; position: relative; }
         
         #sidebar { transition: transform 0.3s ease-in-out; }
+
+        /* ═══════════════════════════════════════════════
+           MOBILE BOTTOM NAV BAR  (Flipkart / Amazon style)
+        ═══════════════════════════════════════════════ */
+        #mob-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 500;
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
+            height: 62px;
+            align-items: stretch;
+        }
+        .dark #mob-bottom-nav {
+            background: #1f2937;
+            border-top-color: #374151;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.35);
+        }
+        @media (max-width: 767px) { #mob-bottom-nav { display: flex; } }
+        @media (min-width: 768px) { #mob-bottom-nav { display: none !important; } }
+
+        .mbn-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 6px 2px 8px;
+            position: relative;
+            transition: color .18s, background .18s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .dark .mbn-tab { color: #9ca3af; }
+        .mbn-tab:active { background: rgba(16,185,129,.07); }
+
+        .mbn-tab .mbn-icon-wrap {
+            position: relative;
+            width: 26px; height: 26px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mbn-tab svg { width: 22px; height: 22px; transition: transform .2s; }
+        .mbn-tab.mbn-active svg { transform: scale(1.12); }
+
+        /* Active: icon turns green + label bold + top pill indicator */
+        .mbn-tab.mbn-active { color: #059669; font-weight: 700; }
+        .dark .mbn-tab.mbn-active { color: #34d399; }
+        .mbn-tab.mbn-active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 36px; height: 3px;
+            background: #059669;
+            border-radius: 0 0 4px 4px;
+        }
+        .dark .mbn-tab.mbn-active::before { background: #34d399; }
+
+        /* Badge on icon */
+        .mbn-badge {
+            position: absolute;
+            top: -5px; right: -7px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            min-width: 16px; height: 16px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px;
+            line-height: 1;
+            border: 1.5px solid #fff;
+        }
+        .dark .mbn-badge { border-color: #1f2937; }
+        .mbn-badge.pink { background: #ec4899; }
+        .mbn-badge.hidden { display: none; }
+
+        /* ── More / Drawer ───────────────────────────── */
+        #mob-more-backdrop {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 600;
+            backdrop-filter: blur(2px);
+        }
+        #mob-more-backdrop.open { display: block; }
+
+        #mob-more-drawer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 601;
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+            padding: 0 0 calc(env(safe-area-inset-bottom) + 8px);
+            transform: translateY(100%);
+            transition: transform .32s cubic-bezier(.22,.68,0,1.15);
+        }
+        .dark #mob-more-drawer {
+            background: #1f2937;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.45);
+        }
+        #mob-more-drawer.open { transform: translateY(0); }
+
+        .mob-drawer-handle {
+            width: 40px; height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 12px auto 4px;
+        }
+        .dark .mob-drawer-handle { background: #4b5563; }
+
+        .mob-drawer-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #9ca3af;
+            padding: 8px 20px 6px;
+        }
+
+        .mob-drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            padding: 6px 12px 12px;
+        }
+
+        .mob-drawer-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 8px 12px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #374151;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 14px;
+            transition: background .15s, color .15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .dark .mob-drawer-item { color: #d1d5db; }
+        .mob-drawer-item:active,
+        .mob-drawer-item:hover { background: #f0fdf4; color: #059669; }
+        .dark .mob-drawer-item:active,
+        .dark .mob-drawer-item:hover { background: rgba(52,211,153,.1); color: #34d399; }
+
+        .mob-drawer-item .mob-di-icon {
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            background: #f3f4f6;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
+        }
+        .dark .mob-drawer-item .mob-di-icon { background: #374151; }
+        .mob-drawer-item:hover .mob-di-icon,
+        .mob-drawer-item:active .mob-di-icon { background: #d1fae5; }
+        .dark .mob-drawer-item:hover .mob-di-icon,
+        .dark .mob-drawer-item:active .mob-di-icon { background: rgba(52,211,153,.18); }
+        .mob-drawer-item svg { width: 22px; height: 22px; color: #059669; }
+        .dark .mob-drawer-item svg { color: #34d399; }
+
+        /* Push content up so bottom nav doesn't cover it on mobile */
+        @media (max-width: 767px) {
+            #content-area { padding-bottom: 80px !important; }
+        }
         
         .lm-flyin { transform: translateY(18px); opacity: 0; transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 360ms; }
         .lm-flyin.lm-show { transform: translateY(0); opacity: 1; }
@@ -577,9 +756,6 @@
         <main id="main-content" class="flex-1 flex flex-col relative overflow-hidden w-full h-full">
             <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 py-4 flex justify-between items-center z-10 sticky top-0 flex-shrink-0 transition-colors">
     <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
-        <button onclick="toggleSidebar()" class="md:hidden text-gray-600 dark:text-gray-300 hover:text-green-600 flex-shrink-0">
-            <i data-lucide="menu" class="w-6 h-6"></i>
-        </button>
         <div class="overflow-hidden">
             <h1 id="page-title" class="text-lg md:text-2xl font-bold text-gray-800 dark:text-white truncate">My Dashboard</h1>
             <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:block" id="current-date"></p>
@@ -639,6 +815,105 @@
     </div>
 </header>
             
+            <!-- ════════════════════════════════════════════════════
+                 MOBILE BOTTOM NAV BAR  (Flipkart / Amazon style)
+                 Visible only on < 768 px
+            ════════════════════════════════════════════════════ -->
+
+            <!-- More-menu backdrop -->
+            <div id="mob-more-backdrop" onclick="closeMobMore()"></div>
+
+            <!-- More-menu slide-up drawer -->
+            <div id="mob-more-drawer" role="dialog" aria-label="More options">
+                <div class="mob-drawer-handle"></div>
+                <p class="mob-drawer-title">More</p>
+                <div class="mob-drawer-grid">
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('wishlist')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </span>
+                        <span class="lang-wishlist">Wishlist</span>
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('addresses')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </span>
+                        <span class="lang-addresses">Addresses</span>
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('profile')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </span>
+                        Profile
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('support')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0118 0v6"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+                        </span>
+                        <span class="lang-support">Support</span>
+                    </button>
+
+                    <button class="mob-drawer-item" onclick="closeMobMore();router('about')">
+                        <span class="mob-di-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
+                        </span>
+                        <span class="lang-about">About</span>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Fixed Bottom Nav Bar -->
+            <nav id="mob-bottom-nav" aria-label="Main navigation">
+
+                <!-- Browse / Home -->
+                <button class="mbn-tab mbn-active" id="mbn-browse" onclick="router('browse')" aria-label="Browse Livestock">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5v-6h4v6h5a1 1 0 001-1V10"/></svg>
+                    </span>
+                    <span class="lang-browse">Home</span>
+                </button>
+
+                <!-- My Orders -->
+                <button class="mbn-tab" id="mbn-orders" onclick="router('orders')" aria-label="My Orders">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </span>
+                    <span class="lang-orders">Orders</span>
+                </button>
+
+                <!-- My Dashboard — centre tab -->
+                <button class="mbn-tab" id="mbn-dashboard" onclick="router('dashboard')" aria-label="My Dashboard">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                    </span>
+                    <span class="lang-dashboard">Dashboard</span>
+                </button>
+
+                <!-- Cart — right of Dashboard -->
+                <button class="mbn-tab" id="mbn-cart" onclick="router('cart')" aria-label="Cart">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 7h13M7 13l-1-5m10 5l1-5"/></svg>
+                        <span id="mbn-cart-badge" class="mbn-badge hidden">0</span>
+                    </span>
+                    <span class="lang-cart">Cart</span>
+                </button>
+
+                <!-- More -->
+                <button class="mbn-tab" id="mbn-more" onclick="openMobMore()" aria-label="More options">
+                    <span class="mbn-icon-wrap">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </span>
+                    More
+                </button>
+
+            </nav>
+            <!-- ════════════════════════════════════════════════════ -->
+
             <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 dark:bg-gray-900 hide-scrollbar relative pb-24 transition-colors">
                 
                 <!-- ╔══════════════════════════════════════════╗ -->
@@ -1311,6 +1586,19 @@ function isSessionStillValid() {
                 overlay.classList.add('hidden');
             }
         }
+
+        /* ── Mobile More Drawer ─────────────────────── */
+        function openMobMore() {
+            document.getElementById('mob-more-backdrop').classList.add('open');
+            document.getElementById('mob-more-drawer').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMobMore() {
+            document.getElementById('mob-more-backdrop').classList.remove('open');
+            document.getElementById('mob-more-drawer').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        /* ─────────────────────────────────────────────── */
         
         let previousLivestockCount = parseInt(localStorage.getItem('lm_prev_ls_count') || '0');
         let previousOrdersSnapshot = localStorage.getItem('lm_prev_orders_snap') || '[]';
@@ -1826,6 +2114,24 @@ function isSessionStillValid() {
                     btn.classList.add('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
                 }
             });
+
+            // Mobile Bottom Nav Active State
+            const mbnTabs = ['browse','orders','dashboard','cart'];
+            mbnTabs.forEach(id => {
+                const el = document.getElementById('mbn-' + id);
+                if (!el) return;
+                if (id === viewName && viewName !== 'summary') {
+                    el.classList.add('mbn-active');
+                } else {
+                    el.classList.remove('mbn-active');
+                }
+            });
+            // Deactivate More tab if a primary tab is active
+            const moreTab = document.getElementById('mbn-more');
+            if (moreTab) {
+                const isMoreView = !mbnTabs.includes(viewName) && viewName !== 'summary';
+                moreTab.classList.toggle('mbn-active', isMoreView);
+            }
 
             applyTranslations(); // Update title and dynamic text
 
@@ -2796,7 +3102,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
 
         function updateCartBadge() {
-            const badges = [document.getElementById('cart-badge'), document.getElementById('header-cart-badge')];
+            const badges = [document.getElementById('cart-badge'), document.getElementById('header-cart-badge'), document.getElementById('mbn-cart-badge')];
             badges.forEach(b => {
                 if (!b) return;
                 b.innerText = cart.length;
@@ -2806,11 +3112,13 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
         
         function updateWishlistBadge() {
-            const badge = document.getElementById('wishlist-badge');
-            if (!badge) return;
-            badge.innerText = getVisibleWishlistCount();
-            if (getVisibleWishlistCount() > 0) badge.classList.remove('hidden');
-            else badge.classList.add('hidden');
+            const count = getVisibleWishlistCount();
+            [document.getElementById('wishlist-badge')].forEach(b => {
+                if (!b) return;
+                b.innerText = count;
+                if (count > 0) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
         }
 
         function getStatusColor(status) {
