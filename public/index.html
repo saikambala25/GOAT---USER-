@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -49,7 +49,156 @@
         .auth-card.show-register .auth-panel-login { transform: translateX(-100%); opacity: 0; pointer-events: none; }
         .auth-card.show-register .auth-panel-register { transform: translateX(0); opacity: 1; pointer-events: auto; position: relative; }
         
-        #sidebar { transition: transform 0.3s ease-in-out; }
+        /* ── BOTTOM NAV SYSTEM ──────────────────────────────── */
+        #lm-bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+            height: 68px;
+            background: rgba(10, 15, 20, 0.92);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-top: 1px solid rgba(16,185,129,0.12);
+            display: flex; align-items: stretch;
+            padding: 0 4px;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.4), 0 -1px 0 rgba(16,185,129,0.08);
+        }
+        .lm-nav-btn {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 4px; padding: 6px 2px; border: none; background: transparent;
+            cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
+            border-radius: 0; -webkit-tap-highlight-color: transparent;
+            min-width: 0;
+        }
+        .lm-nav-btn .nav-icon-wrap {
+            position: relative; width: 36px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
+        }
+        .lm-nav-btn svg { width: 20px; height: 20px; transition: all 0.25s ease; color: #6b7280; }
+        .lm-nav-btn .nav-label {
+            font-size: 10px; font-weight: 500; color: #6b7280;
+            transition: all 0.2s ease; letter-spacing: 0.01em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+        }
+        .lm-nav-btn .nav-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: #fff; font-size: 9px; font-weight: 700;
+            min-width: 16px; height: 16px; padding: 0 4px;
+            border-radius: 999px; display: none; align-items: center; justify-content: center;
+            border: 2px solid rgba(10,15,20,0.92); line-height: 1;
+        }
+        .lm-nav-btn.active svg { color: #10b981; }
+        .lm-nav-btn.active .nav-label { color: #10b981; font-weight: 700; }
+        .lm-nav-btn.active .nav-icon-wrap {
+            background: rgba(16,185,129,0.15);
+            transform: translateY(-3px) scale(1.08);
+        }
+        .lm-nav-btn:active { transform: scale(0.92); }
+
+        /* Centre FAB browse button */
+        .lm-nav-btn.nav-center .nav-icon-wrap {
+            width: 48px; height: 48px; border-radius: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 20px rgba(16,185,129,0.5);
+            margin-top: -12px;
+            transform: translateY(-6px);
+        }
+        .lm-nav-btn.nav-center svg { color: #fff; width: 22px; height: 22px; }
+        .lm-nav-btn.nav-center .nav-label { color: #10b981; font-weight: 700; }
+        .lm-nav-btn.nav-center.active .nav-icon-wrap {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 6px 28px rgba(16,185,129,0.65);
+            transform: translateY(-8px) scale(1.08);
+        }
+
+        /* More drawer overlay */
+        #lm-more-drawer {
+            position: fixed; inset: 0; z-index: 199;
+            pointer-events: none; opacity: 0; transition: opacity 0.25s ease;
+        }
+        #lm-more-drawer.open { pointer-events: all; opacity: 1; }
+        #lm-more-drawer-bg {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        }
+        #lm-more-panel {
+            position: absolute; bottom: 68px; left: 0; right: 0;
+            background: #0f1923;
+            border-top: 1px solid rgba(16,185,129,0.15);
+            border-radius: 28px 28px 0 0;
+            padding: 16px 16px 8px;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+            box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+        }
+        #lm-more-drawer.open #lm-more-panel { transform: translateY(0); }
+        .lm-more-handle {
+            width: 36px; height: 4px; background: rgba(255,255,255,0.15);
+            border-radius: 2px; margin: 0 auto 16px;
+        }
+        .lm-more-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .lm-more-item {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 14px 8px 10px; border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            cursor: pointer; transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .lm-more-item:active { transform: scale(0.94); background: rgba(16,185,129,0.12); }
+        .lm-more-item svg { width: 22px; height: 22px; color: #9ca3af; }
+        .lm-more-item span { font-size: 10px; color: #9ca3af; font-weight: 500; text-align: center; }
+        .lm-more-item.active-item svg { color: #10b981; }
+        .lm-more-item.active-item span { color: #10b981; }
+        .lm-more-item.active-item { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); }
+
+        /* Top app bar */
+        #lm-topbar {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(10,15,20,0.92);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border-bottom: 1px solid rgba(16,185,129,0.1);
+            padding: 12px 16px;
+            display: flex; align-items: center; gap: 12px;
+            flex-shrink: 0;
+        }
+        #lm-topbar .topbar-logo {
+            width: 34px; height: 34px; border-radius: 10px; overflow: hidden;
+            border: 1.5px solid rgba(16,185,129,0.3); flex-shrink: 0;
+        }
+        #lm-topbar .topbar-logo img { width: 100%; height: 100%; object-fit: cover; }
+        #lm-topbar .topbar-title {
+            flex: 1; font-size: 17px; font-weight: 800; color: #fff;
+            letter-spacing: -0.3px;
+        }
+        #lm-topbar .topbar-title span { color: #10b981; }
+        .topbar-action {
+            width: 38px; height: 38px; border-radius: 12px; border: none;
+            background: rgba(255,255,255,0.06); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .topbar-action:active { background: rgba(16,185,129,0.15); }
+        .topbar-action svg { width: 18px; height: 18px; color: #d1d5db; }
+
+        /* Content safe area for bottom nav */
+        #content-area { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+
+        /* Page title bar below topbar */
+        #lm-page-title-bar {
+            padding: 8px 16px 0; flex-shrink: 0;
+        }
+        #page-title-display {
+            font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px;
+        }
+        #page-subtitle-display { font-size: 12px; color: #6b7280; margin-top: 1px; }
+
+        /* Dark mode adjustments for content */
+        body { background: #0a0f14; }
+        #user-app { background: #0a0f14; }
+        #content-area { background: #0a0f14 !important; }
         
         .lm-flyin { transform: translateY(18px); opacity: 0; transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 360ms; }
         .lm-flyin.lm-show { transform: translateY(0); opacity: 1; }
@@ -261,7 +410,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     
 </head>
-<body class="h-screen bg-gray-900 text-gray-100 overflow-hidden transition-colors duration-200">
+<body class="dark" style="background:#0a0f14;color:#f1f5f9;height:100dvh;overflow:hidden;">
     
     <div id="pull-refresh-indicator">
         <div class="spinner"></div>
@@ -276,8 +425,7 @@
         <div class="lm-lb-counter" id="lm-lb-counter"></div>
     </div>
 
-    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
-
+    
     <div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none"></div>
 
 <!-- ═══════════════════════════════════════════
@@ -292,8 +440,8 @@
       <div style="display:flex;align-items:center;gap:12px;">
 
         <!-- App icon -->
-        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#10b981,#064e3b);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,0.45);border:1.5px solid rgba(16,185,129,0.4);">
-          <span style="color:white;font-size:26px;font-weight:900;line-height:1;">L</span>
+        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(16,185,129,0.45);border:1.5px solid rgba(16,185,129,0.4);">
+          <img src="IMG_20251229_120150.jpg" style="width:100%;height:100%;object-fit:cover;display:block;" alt="LivestockMart Logo">
         </div>
 
         <!-- Text -->
@@ -333,82 +481,45 @@
   ✓ App Installed!
 </div>
 
-<!-- ══ PUSH NOTIFICATION PERMISSION BANNER ═══════════════════════════ -->
-<div id="lm-push-banner">
-  <div class="lm-push-inner">
-    <div class="lm-push-icon">🔔</div>
-    <div class="lm-push-text">
-      <strong>Enable Notifications</strong>
-      <span>Get alerts for orders, new livestock & deals — even when app is closed</span>
-    </div>
-    <button class="lm-push-allow" onclick="LM_NOTIF.requestPermission()">Allow</button>
-    <button class="lm-push-deny" onclick="LM_NOTIF.dismissPermissionBanner()">✕</button>
-  </div>
-</div>
-
-<!-- ══ SMART NOTIFICATION CHIP (floats under header) ═════════════════ -->
-<div id="lm-smart-chip" class="lm-smart-notif-chip">
-  <span id="lm-smart-chip-icon">🎯</span>
-  <span id="lm-smart-chip-text"></span>
-</div>
-
 <style>
 @keyframes chipPop   { from{opacity:0;transform:translateX(-50%) scale(.6)} to{opacity:1;transform:translateX(-50%) scale(1)} }
 @keyframes pwaSlideUp{ from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
 @keyframes pwaSlideDown{from{transform:translateY(0);opacity:1} to{transform:translateY(110%);opacity:0}}
-</style>
 
-<style>
-/* ══ SOUND & NOTIFICATION SYSTEM STYLES ══════════════════════════════ */
-/* Push Permission Banner */
-#lm-push-banner {
-  position:fixed;top:0;left:0;right:0;z-index:100000;
-  background:linear-gradient(135deg,#065f46,#047857);
-  border-bottom:1px solid rgba(16,185,129,.4);
-  box-shadow:0 4px 24px rgba(0,0,0,.35);
-  font-family:'Inter',system-ui,sans-serif;
-  transform:translateY(-100%);transition:transform .45s cubic-bezier(.22,.68,0,1.2);
-}
-#lm-push-banner.show{transform:translateY(0);}
-.lm-push-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px;}
-.lm-push-icon{font-size:22px;flex-shrink:0;}
-.lm-push-text{flex:1;min-width:0;}
-.lm-push-text strong{display:block;color:#fff;font-size:13px;font-weight:700;}
-.lm-push-text span{color:rgba(255,255,255,.7);font-size:11px;}
-.lm-push-allow{background:#10b981;color:#fff;border:none;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s;}
-.lm-push-allow:hover{opacity:.88;}
-.lm-push-deny{background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:none;padding:8px 10px;border-radius:10px;font-size:18px;cursor:pointer;transition:background .15s;}
-.lm-push-deny:hover{background:rgba(255,255,255,.22);}
+        /* ── GLOBAL DARK THEME REFRESH ─────────────────────────── */
+        .dark .ud-skeleton, .ud-skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #2d3f55 50%, #1e293b 75%);
+            background-size: 600px 100%;
+        }
+        /* Cards dark */
+        #content-area .bg-white { background: #111c2b !important; }
+        #content-area .dark\:bg-gray-800 { background: #111c2b !important; }
+        #content-area .border-gray-200 { border-color: rgba(255,255,255,0.07) !important; }
+        #content-area .dark\:border-gray-700 { border-color: rgba(255,255,255,0.07) !important; }
+        #content-area .text-gray-800 { color: #f1f5f9 !important; }
+        #content-area .text-gray-500 { color: #94a3b8 !important; }
+        #content-area .text-gray-400 { color: #64748b !important; }
+        #content-area .bg-gray-50 { background: #0d1520 !important; }
+        #content-area .dark\:bg-gray-900 { background: #0a0f14 !important; }
+        /* Inputs */
+        #content-area input, #content-area textarea, #content-area select {
+            background: #1a2535 !important;
+            border-color: rgba(255,255,255,0.1) !important;
+            color: #f1f5f9 !important;
+        }
+        /* Force dark on auth modals */
+        .auth-glass { background: rgba(10,15,20,0.97) !important; }
+        /* Page title bar */
+        #lm-page-title-bar { background: #0a0f14; padding: 6px 16px 10px; }
+        /* Notification menu dark */
+        #notification-menu { color: #f1f5f9; }
+        #notification-menu .text-gray-800 { color: #f1f5f9 !important; }
+        #notification-menu .text-gray-500 { color: #94a3b8 !important; }
+        /* More drawer item hover */
+        .lm-more-item:hover { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.15); }
+        .lm-more-item:hover svg { color: #10b981; }
+        .lm-more-item:hover span { color: #10b981; }
 
-/* Sound toggle button */
-#lm-sound-btn{position:relative;transition:transform .15s;}
-#lm-sound-btn .lm-sound-off{display:none;}
-#lm-sound-btn.muted .lm-sound-on{display:none;}
-#lm-sound-btn.muted .lm-sound-off{display:block;}
-
-/* Admin notification badge - special styling */
-.lm-notif-admin{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(139,92,246,.1));border:1px solid rgba(124,58,237,.3)!important;border-radius:10px;}
-.lm-notif-admin .lm-admin-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.12);padding:1px 5px;border-radius:999px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em;}
-
-/* Smart notification chip */
-.lm-smart-notif-chip{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:99998;
-  background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid rgba(16,185,129,.4);
-  color:#fff;padding:10px 16px;border-radius:16px;font-size:12px;font-weight:600;
-  white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.45);
-  opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:90vw;
-  display:flex;align-items:center;gap:8px;
-}
-.lm-smart-notif-chip.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-/* Notification settings button in header */
-#lm-notif-settings-btn{cursor:pointer;}
-
-/* Sound wave animation */
-@keyframes lmSoundWave{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.6);}}
-.lm-wave span{display:inline-block;width:2px;height:8px;background:#10b981;border-radius:2px;margin:0 1px;animation:lmSoundWave .6s ease-in-out infinite;}
-.lm-wave span:nth-child(2){animation-delay:.1s;}
-.lm-wave span:nth-child(3){animation-delay:.2s;}
-.lm-wave.muted span{animation:none;background:rgba(156,163,175,.4);}
 </style>
 
     
@@ -669,17 +780,6 @@
                 <button onclick="changeLanguage('te')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">తెలుగు</button>
             </div>
         </div>
-
-        <!-- Sound Toggle Button -->
-        <button id="lm-sound-btn" onclick="LM_NOTIF.toggleSound()" title="Toggle sound alerts"
-          class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative" aria-label="Sound toggle">
-          <span class="lm-sound-on">
-            <i data-lucide="volume-2" class="w-5 h-5 text-emerald-500"></i>
-          </span>
-          <span class="lm-sound-off">
-            <i data-lucide="volume-x" class="w-5 h-5 text-gray-400 dark:text-gray-500"></i>
-          </span>
-        </button>
 
         <div class="relative">
             <button id="notification-button" onclick="toggleNotificationMenu()" class="focus:outline-none p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative">
@@ -1220,6 +1320,93 @@
                 </div>
             </div>
         </main>
+
+        <!-- ═══ BOTTOM NAVIGATION BAR ══════════════════════════════ -->
+        <nav id="lm-bottom-nav">
+            <!-- Home/Browse -->
+            <button class="lm-nav-btn nav-item active" id="nav-browse" onclick="router('browse')" aria-label="Browse">
+                <div class="nav-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                <span class="nav-label">Home</span>
+            </button>
+
+            <!-- Orders -->
+            <button class="lm-nav-btn nav-item" id="nav-orders" onclick="router('orders')" aria-label="Orders">
+                <div class="nav-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                </div>
+                <span class="nav-label">Orders</span>
+            </button>
+
+            <!-- Browse (Centre FAB) -->
+            <button class="lm-nav-btn nav-item nav-center" id="nav-dashboard" onclick="router('dashboard')" aria-label="Dashboard">
+                <div class="nav-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <span class="nav-label">Dash</span>
+            </button>
+
+            <!-- Cart -->
+            <button class="lm-nav-btn nav-item" id="nav-cart" onclick="router('cart')" aria-label="Cart">
+                <div class="nav-icon-wrap" style="position:relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span id="cart-badge" class="nav-badge" style="position:absolute;top:-6px;right:-6px;display:none;">0</span>
+                    <span id="header-cart-badge" class="hidden">0</span>
+                </div>
+                <span class="nav-label">Cart</span>
+            </button>
+
+            <!-- More -->
+            <button class="lm-nav-btn" id="nav-more" onclick="toggleMoreDrawer()" aria-label="More">
+                <div class="nav-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+                </div>
+                <span class="nav-label">More</span>
+            </button>
+        </nav>
+
+        <!-- ═══ MORE DRAWER ══════════════════════════════════════════ -->
+        <div id="lm-more-drawer" onclick="handleMoreDrawerClick(event)">
+            <div id="lm-more-drawer-bg"></div>
+            <div id="lm-more-panel">
+                <div class="lm-more-handle"></div>
+                <div class="lm-more-grid">
+                    <div class="lm-more-item nav-item" id="drawer-wishlist" onclick="router('wishlist');closeMoreDrawer()">
+                        <div style="position:relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            <span id="wishlist-badge" class="nav-badge" style="position:absolute;top:-6px;right:-6px;display:none;align-items:center;justify-content:center;background:#ec4899;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 3px;border-radius:999px;">0</span>
+                        </div>
+                        <span>Wishlist</span>
+                    </div>
+                    <div class="lm-more-item nav-item" id="drawer-addresses" onclick="router('addresses');closeMoreDrawer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>Address</span>
+                    </div>
+                    <div class="lm-more-item nav-item" id="drawer-profile" onclick="router('profile');closeMoreDrawer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>Profile</span>
+                    </div>
+                    <div class="lm-more-item nav-item" id="drawer-support" onclick="router('support');closeMoreDrawer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+                        <span>Support</span>
+                    </div>
+                    <div class="lm-more-item nav-item" id="drawer-about" onclick="router('about');closeMoreDrawer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span>About</span>
+                    </div>
+                    <div class="lm-more-item" onclick="toggleDarkMode();closeMoreDrawer()" id="drawer-theme">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        <span>Theme</span>
+                    </div>
+                    <div class="lm-more-item" onclick="handleLogout();closeMoreDrawer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:#f87171"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <span style="color:#f87171">Logout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
     
     <script>
@@ -1288,293 +1475,7 @@ function isSessionStillValid() {
         
         // --- Language & Notifications ---
         let currentLang = localStorage.getItem('lm_lang') || 'en';
-
-/* ══════════════════════════════════════════════════════════════════════
-   LM_NOTIF — Unified Notification Engine
-   • 🔊 Sound alerts (Web Audio API — works offline)
-   • 📱 Push notifications (even when app is closed)
-   • 🎯 Smart notifications (behaviour-driven)
-   • 📊 Admin-triggered notifications (special styling + priority)
-══════════════════════════════════════════════════════════════════════ */
-const LM_NOTIF = (() => {
-
-  /* ── 🔊 SOUND ALERTS ─────────────────────────────────────────── */
-  let _ctx = null;
-  function _getCtx() {
-    if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (_ctx.state === 'suspended') _ctx.resume();
-    return _ctx;
-  }
-  function _tone(freq, type, dur, vol = 0.28, delay = 0) {
-    try {
-      const c = _getCtx();
-      const osc = c.createOscillator(), g = c.createGain();
-      osc.connect(g); g.connect(c.destination);
-      osc.type = type; osc.frequency.value = freq;
-      const t = c.currentTime + delay;
-      g.gain.setValueAtTime(vol, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.start(t); osc.stop(t + dur);
-    } catch(e) {}
-  }
-
-  let _soundOn = localStorage.getItem('lm_sound') !== '0';
-
-  const SOUNDS = {
-    success : () => { _tone(523,'sine',.12,.3); _tone(659,'sine',.2,.3,.12); },
-    error   : () => { _tone(220,'sawtooth',.22,.25); _tone(196,'sawtooth',.28,.25,.16); },
-    info    : () => { _tone(440,'sine',.18,.22); },
-    warning : () => { _tone(440,'triangle',.12,.3); _tone(330,'triangle',.18,.3,.1); },
-    notify  : () => { _tone(523,'triangle',.1,.28); _tone(784,'triangle',.22,.28,.09); },
-    admin   : () => { [523,659,784,880].forEach((f,i)=>_tone(f,'sine',.16,.35,i*.08)); },
-    smart   : () => { _tone(660,'sine',.1,.2); _tone(880,'sine',.15,.2,.1); _tone(660,'sine',.12,.15,.22); },
-    cart    : () => { _tone(440,'sine',.08,.2); _tone(523,'sine',.12,.2,.07); },
-  };
-
-  function playSound(type) {
-    if (!_soundOn) return;
-    try { SOUNDS[type]?.(); } catch(e) {}
-  }
-
-  function toggleSound() {
-    _soundOn = !_soundOn;
-    localStorage.setItem('lm_sound', _soundOn ? '1' : '0');
-    const btn = document.getElementById('lm-sound-btn');
-    if (btn) _soundOn ? btn.classList.remove('muted') : btn.classList.add('muted');
-    if (typeof showToast === 'function')
-      showToast(_soundOn ? '🔊 Sound alerts ON' : '🔇 Sound alerts OFF', 'info', true);
-  }
-
-  function initSoundBtn() {
-    const btn = document.getElementById('lm-sound-btn');
-    if (!btn) return;
-    if (!_soundOn) btn.classList.add('muted');
-  }
-
-  /* ── 📱 PUSH NOTIFICATIONS ───────────────────────────────────── */
-  let _swReg = null;
-
-  function setSwReg(reg) { _swReg = reg; }
-
-  async function requestPermission() {
-    dismissPermissionBanner();
-    if (!('Notification' in window)) {
-      if (typeof showToast === 'function') showToast('Push notifications not supported in this browser', 'warning');
-      return;
-    }
-    try {
-      const result = await Notification.requestPermission();
-      if (result === 'granted') {
-        localStorage.setItem('lm_push_asked', '1');
-        playSound('success');
-        if (typeof showToast === 'function') showToast('🔔 Push notifications enabled!', 'success');
-        // Register background sync if SW supports it
-        if (_swReg && 'sync' in _swReg) {
-          try { await _swReg.sync.register('lm-background-check'); } catch(e) {}
-        }
-      } else {
-        localStorage.setItem('lm_push_asked', '1');
-        if (typeof showToast === 'function') showToast('Notifications blocked — you can enable them in browser settings', 'info');
-      }
-    } catch(e) {
-      console.warn('[LM_NOTIF] Permission error', e);
-    }
-  }
-
-  function showPermissionBanner() {
-    if (localStorage.getItem('lm_push_asked') === '1') return;
-    if (!('Notification' in window)) return;
-    if (Notification.permission !== 'default') return;
-    const banner = document.getElementById('lm-push-banner');
-    if (!banner) return;
-    setTimeout(() => banner.classList.add('show'), 2500);
-  }
-
-  function dismissPermissionBanner() {
-    const banner = document.getElementById('lm-push-banner');
-    if (banner) banner.classList.remove('show');
-  }
-
-  // Show a device-level notification via SW (works when app is minimised)
-  async function showPushNotif(title, body, icon = '🔔', tag = 'lm-notif') {
-    if (Notification.permission !== 'granted') return;
-    if (_swReg) {
-      try {
-        await _swReg.showNotification(title, {
-          body, tag, icon: 'IMG_20251229_120150.jpg',
-          badge: 'IMG_20251229_120150.jpg',
-          vibrate: [120, 60, 120],
-          data: { url: './' }
-        });
-      } catch(e) {
-        // Fallback: regular Notification API
-        new Notification(title, { body, tag });
-      }
-    } else if (Notification.permission === 'granted') {
-      new Notification(title, { body, tag });
-    }
-  }
-
-  /* ── 📊 ADMIN-TRIGGERED NOTIFICATIONS ───────────────────────── */
-  // Admin notifications are fetched from /api/notifications
-  // They get special purple styling + priority sound + device push
-  function handleAdminNotification(notif) {
-    // Mark as admin-type
-    notif.isAdmin = true;
-    playSound('admin');
-    // Device-level push so it works even when minimised
-    showPushNotif(
-      '📢 ' + (notif.title || 'LivestockMart'),
-      notif.message,
-      '🔔',
-      'lm-admin-' + notif.id
-    );
-    showSmartChip('📢', notif.message, 6000);
-    if (typeof showToast === 'function') showToast('📢 ' + notif.message, 'info');
-  }
-
-  /* ── 🎯 SMART NOTIFICATIONS ──────────────────────────────────── */
-  const _smart = {
-    cartTimer    : null,
-    lastBrowse   : {},  // category → count
-    lastVisit    : parseInt(localStorage.getItem('lm_last_visit') || '0'),
-    greetedToday : localStorage.getItem('lm_greeted') === new Date().toDateString(),
-  };
-
-  // Shown as a subtle floating chip below the header
-  function showSmartChip(icon, text, duration = 4000) {
-    const chip = document.getElementById('lm-smart-chip');
-    const iconEl = document.getElementById('lm-smart-chip-icon');
-    const textEl = document.getElementById('lm-smart-chip-text');
-    if (!chip || !iconEl || !textEl) return;
-    iconEl.textContent = icon;
-    textEl.textContent = text;
-    chip.classList.add('show');
-    setTimeout(() => chip.classList.remove('show'), duration);
-  }
-
-  // Called when user adds something to cart — start abandonment timer (20 min)
-  function onCartAdd(itemName) {
-    clearTimeout(_smart.cartTimer);
-    _smart.cartTimer = setTimeout(() => {
-      if (typeof cart !== 'undefined' && cart.length > 0) {
-        playSound('cart');
-        const msg = `You still have ${cart.length} item${cart.length>1?'s':''} in your cart — complete your order!`;
-        showSmartChip('🛒', msg, 7000);
-        showPushNotif('🛒 Cart Reminder', msg, '🛒', 'lm-cart-remind');
-        addSmartNotifToList('Cart Reminder', msg, 'shopping-cart', 'yellow');
-      }
-    }, 20 * 60 * 1000); // 20 minutes
-  }
-
-  // Called when user browses — track category interest
-  function onBrowseCategory(category) {
-    if (!category || category === 'All') return;
-    _smart.lastBrowse[category] = (_smart.lastBrowse[category] || 0) + 1;
-    if (_smart.lastBrowse[category] === 3) {
-      const msg = `Looks like you're interested in ${category}! Check our latest listings.`;
-      playSound('smart');
-      showSmartChip('🎯', msg, 5000);
-      addSmartNotifToList('Personalised Pick', msg, 'target', 'purple');
-      _smart.lastBrowse[category] = 0; // reset counter
-    }
-  }
-
-  // Called on login — check re-engagement & greet
-  function onLogin(userName) {
-    const name = (userName || '').split(' ')[0] || 'there';
-    const now = Date.now();
-    const daysSince = Math.floor((now - _smart.lastVisit) / 86400000);
-
-    // Daily greeting (first open of the day)
-    if (!_smart.greetedToday) {
-      _smart.greetedToday = true;
-      localStorage.setItem('lm_greeted', new Date().toDateString());
-      const hour = new Date().getHours();
-      const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-      setTimeout(() => {
-        playSound('notify');
-        showSmartChip('👋', `${greeting}, ${name}! New livestock added today.`, 5000);
-      }, 3500);
-    }
-
-    // Re-engagement message if away > 3 days
-    if (_smart.lastVisit && daysSince >= 3) {
-      setTimeout(() => {
-        const msg = `Welcome back, ${name}! You've been away ${daysSince} days — here's what's new.`;
-        playSound('smart');
-        showSmartChip('🎉', msg, 6000);
-        showPushNotif('👋 We missed you!', msg, '🎉', 'lm-reengage');
-        addSmartNotifToList('We Missed You!', msg, 'sparkles', 'blue');
-      }, 6000);
-    }
-
-    localStorage.setItem('lm_last_visit', now.toString());
-    showPermissionBanner();
-  }
-
-  // Called when order status changes
-  function onOrderStatusChange(orderId, newStatus) {
-    playSound(newStatus === 'Delivered' ? 'success' : 'notify');
-    const msg = `Order #${String(orderId).slice(-6)} is now ${newStatus}`;
-    showPushNotif('📦 Order Update', msg, '📦', 'lm-order-' + orderId);
-    showSmartChip('📦', msg, 5000);
-  }
-
-  // Add a notification to the in-app list
-  function addSmartNotifToList(title, message, icon, color) {
-    if (typeof notifications !== 'undefined') {
-      notifications.push({
-        id: 'smart_' + Date.now() + Math.random(),
-        title, message, icon: icon || 'bell', color: color || 'green',
-        timestamp: Date.now(), seen: false, isSmart: true
-      });
-      if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
-      if (typeof saveNotifications === 'function') saveNotifications();
-    }
-  }
-
-  // Called when new livestock appears
-  function onNewLivestock(count) {
-    playSound('notify');
-    const msg = `${count} new livestock item${count>1?'s':''} just added to the market!`;
-    showPushNotif('🐑 Market Update', msg, '🐑', 'lm-ls-new');
-    showSmartChip('🐑', msg, 5000);
-  }
-
-  // Called when wishlist items are still available after 24h
-  function checkWishlistNudge(wishlistIds, livestockList) {
-    const available = wishlistIds.filter(id => livestockList.some(l => l._id === id));
-    if (available.length > 0 && Math.random() < 0.3) { // 30% chance per refresh — avoid spamming
-      const msg = `${available.length} wishlist item${available.length>1?'s are':' is'} still available — grab it before it sells!`;
-      playSound('smart');
-      showSmartChip('💚', msg, 6000);
-    }
-  }
-
-  return {
-    playSound,
-    toggleSound,
-    initSoundBtn,
-    setSwReg,
-    requestPermission,
-    showPermissionBanner,
-    dismissPermissionBanner,
-    showPushNotif,
-    handleAdminNotification,
-    showSmartChip,
-    onCartAdd,
-    onBrowseCategory,
-    onLogin,
-    onOrderStatusChange,
-    onNewLivestock,
-    checkWishlistNudge,
-    addSmartNotifToList,
-  };
-})();
-
-// Legacy notifSound shim (keeps old code from breaking)
-const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.resolve(); } };
+        const notifSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
         const translations = {
             en: {
@@ -1669,26 +1570,12 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             }
         }
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
-        }
+        function toggleSidebar() { /* Sidebar removed — using bottom nav */ }
         
         let previousLivestockCount = parseInt(localStorage.getItem('lm_prev_ls_count') || '0');
         let previousOrdersSnapshot = localStorage.getItem('lm_prev_orders_snap') || '[]';
         
-        function showToast(message, type = 'info', noSound = false) {
-            // Play matching sound alert
-            if (!noSound) {
-              try { LM_NOTIF.playSound(type); } catch(e) {}
-            }
+        function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
             const id = 'toast-' + Date.now();
@@ -1740,6 +1627,47 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             updateNotificationBadge();
         }
 
+        /* ── BOTTOM NAV HELPERS ─────────────────────────────── */
+        const BOTTOM_NAV_MAP = {
+            browse: 'nav-browse', dashboard: 'nav-dashboard',
+            cart: 'nav-cart', orders: 'nav-orders'
+        };
+        const DRAWER_NAV_MAP = {
+            wishlist: 'drawer-wishlist', addresses: 'drawer-addresses',
+            profile: 'drawer-profile', support: 'drawer-support', about: 'drawer-about'
+        };
+
+        function updateBottomNavActive(viewName) {
+            // Reset all bottom nav buttons
+            document.querySelectorAll('#lm-bottom-nav .lm-nav-btn').forEach(b => b.classList.remove('active'));
+            // Reset all drawer items
+            document.querySelectorAll('.lm-more-item.nav-item').forEach(b => b.classList.remove('active-item'));
+
+            if (BOTTOM_NAV_MAP[viewName]) {
+                const btn = document.getElementById(BOTTOM_NAV_MAP[viewName]);
+                if (btn) btn.classList.add('active');
+            } else if (DRAWER_NAV_MAP[viewName]) {
+                const item = document.getElementById(DRAWER_NAV_MAP[viewName]);
+                if (item) item.classList.add('active-item');
+                // Also highlight "more" button
+                const moreBtn = document.getElementById('nav-more');
+                if (moreBtn) moreBtn.classList.add('active');
+            }
+        }
+
+        function toggleMoreDrawer() {
+            const drawer = document.getElementById('lm-more-drawer');
+            drawer.classList.toggle('open');
+        }
+        function closeMoreDrawer() {
+            document.getElementById('lm-more-drawer').classList.remove('open');
+        }
+        function handleMoreDrawerClick(e) {
+            if (e.target === document.getElementById('lm-more-drawer-bg') || e.target === document.getElementById('lm-more-drawer')) {
+                closeMoreDrawer();
+            }
+        }
+
         function updateNotificationBadge() {
             const badge = document.getElementById('notification-badge');
             const clearBtn = document.getElementById('clear-all-btn');
@@ -1758,17 +1686,11 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             } else {
                 list.innerHTML = [...notifications].reverse().map(n => {
                     const seenStyle = n.seen ? 'opacity-60' : 'bg-green-50/50 dark:bg-green-900/20';
-                    const adminClass = n.isAdmin ? 'lm-notif-admin' : '';
-                    const adminBadge = n.isAdmin
-                        ? `<span class="lm-admin-badge">📢 Admin</span>` : '';
-                    const smartBadge = n.isSmart
-                        ? `<span class="lm-admin-badge" style="color:#7c3aed;background:rgba(124,58,237,.12)">🎯 Smart</span>` : '';
                     return `
-                    <div class="flex items-start justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ${seenStyle} ${adminClass}">
+                    <div class="flex items-start justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ${seenStyle}">
                         <div class="flex items-start gap-2 flex-1">
-                            <i data-lucide="${n.icon || 'bell'}" class="w-4 h-4 mt-0.5 text-${n.color || 'green'}-500 flex-shrink-0"></i>
+                            <i data-lucide="${n.icon}" class="w-4 h-4 mt-0.5 text-${n.color}-500 flex-shrink-0"></i>
                             <div>
-                                ${adminBadge}${smartBadge}
                                 <p class="text-xs font-medium text-gray-800 dark:text-gray-200">${n.title}</p>
                                 <p class="text-[11px] text-gray-500 dark:text-gray-400">${n.message}</p>
                             </div>
@@ -1886,13 +1808,16 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             const auth = document.getElementById('auth-screen');
             const app = document.getElementById('user-app');
             if (auth) auth.classList.remove('hidden');
-            if (app) app.classList.add('hidden');
+            if (app) app.style.display = 'none';
         }
         function showApp() {
             const auth = document.getElementById('auth-screen');
             const app = document.getElementById('user-app');
             if (auth) auth.classList.add('hidden');
-            if (app) app.classList.remove('hidden');
+            if (app) {
+                app.style.display = 'flex';
+                app.style.flexDirection = 'column';
+            }
             if (!appInitialized) {
                 initApp();
             }
@@ -1952,7 +1877,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                 updateWishlistBadge(); 
                 updateNotificationBadge(); 
                 showToast('Logged in successfully', 'success');
-                LM_NOTIF.onLogin(currentUser?.name);
                 showApp();
                 resetSessionTimer();
             } catch (err) {
@@ -1988,7 +1912,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                 updateWishlistBadge(); 
                 updateNotificationBadge(); 
                 showToast('Account created & logged in', 'success');
-                LM_NOTIF.onLogin(currentUser?.name);
                 showApp();
                 resetSessionTimer();
             } catch (err) {
@@ -2082,15 +2005,15 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                              }
                          });
                          if(newNotifFound) {
-                             const last = fetchedNotifs[fetchedNotifs.length-1];
-                             LM_NOTIF.handleAdminNotification(last);
+                             notifSound.play().catch(()=>{});
+                             const last = notifications[notifications.length-1];
+                             showToast(last.message, last.color === 'red' ? 'error' : 'info');
                          }
                      }
                 } catch(e) { }
 
                 if (isBaselineInitialized && fetchedLivestock.length > previousLivestockCount) {
                     const newCount = fetchedLivestock.length - previousLivestockCount;
-                    LM_NOTIF.onNewLivestock(newCount);
                     notifications.push({
                         id: 'ls_' + Date.now() + Math.random(),
                         title: 'Market Update',
@@ -2113,7 +2036,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                         fetchedOrders.forEach(newOrder => {
                             const oldStatus = previousOrderMap[newOrder._id];
                             if (oldStatus && oldStatus !== newOrder.status) {
-                                LM_NOTIF.onOrderStatusChange(newOrder._id, newOrder.status);
                                 notifications.push({
                                     id: 'order_' + newOrder._id + Date.now(),
                                     title: 'Order Status Update',
@@ -2171,10 +2093,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             updateCartBadge();
             updateWishlistBadge(); 
             updateNotificationBadge(); 
-            // Smart: wishlist availability nudge
-            if (wishlist.length > 0 && livestock.length > 0) {
-              LM_NOTIF.checkWishlistNudge(wishlist, livestock);
-            }
         }
 
         function router(viewName) {
@@ -2201,26 +2119,24 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             const activeView = document.getElementById(`view-${viewName}`);
             if (activeView) activeView.classList.remove('hidden');
             
-            // Sidebar Active State
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                if (viewName === 'summary') return; 
-                if (btn.getAttribute('onclick').includes(viewName)) {
-                    btn.classList.add('bg-green-600', 'text-white');
-                    btn.classList.remove('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
-                } else {
-                    btn.classList.remove('bg-green-600', 'text-white');
-                    btn.classList.add('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
-                }
-            });
+            // Bottom Nav Active State
+            updateBottomNavActive(viewName);
+
+            // Update page title bar
+            const titleMap = {
+                browse:'Browse Livestock', dashboard:'My Dashboard', cart:'Shopping Cart',
+                orders:'My Orders', wishlist:'Wishlist', addresses:'Addresses',
+                profile:'Profile', support:'Support', about:'About', summary:'Order Summary'
+            };
+            const titleEl = document.getElementById('page-title-display');
+            const subtitleEl = document.getElementById('page-subtitle-display');
+            if (titleEl) titleEl.textContent = titleMap[viewName] || viewName.charAt(0).toUpperCase()+viewName.slice(1);
+            if (subtitleEl) {
+                const d = new Date();
+                subtitleEl.textContent = d.toLocaleDateString('en-IN', { weekday:'long', month:'short', day:'numeric' });
+            }
 
             applyTranslations(); // Update title and dynamic text
-
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-            if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
             
             if (viewName === 'dashboard') renderDashboard();
             if (viewName === 'browse') renderBrowse();
@@ -2823,7 +2739,6 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 updateCartBadge();
                 saveUserStateDebounced();
                 showToast(`${item.name} added to cart`, 'success');
-                LM_NOTIF.onCartAdd(item.name);
                 const active = document.querySelector('.nav-item.bg-green-600')?.getAttribute('onclick') || '';
                 if (active.includes('dashboard')) renderDashboard();
             }
@@ -3183,21 +3098,19 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
         }
 
         function updateCartBadge() {
-            const badges = [document.getElementById('cart-badge'), document.getElementById('header-cart-badge')];
-            badges.forEach(b => {
-                if (!b) return;
-                b.innerText = cart.length;
-                if (cart.length > 0) b.classList.remove('hidden');
-                else b.classList.add('hidden');
-            });
+            const badge = document.getElementById('cart-badge');
+            if (badge) {
+                badge.textContent = cart.length;
+                badge.style.display = cart.length > 0 ? 'flex' : 'none';
+            }
         }
         
         function updateWishlistBadge() {
             const badge = document.getElementById('wishlist-badge');
             if (!badge) return;
-            badge.innerText = getVisibleWishlistCount();
-            if (getVisibleWishlistCount() > 0) badge.classList.remove('hidden');
-            else badge.classList.add('hidden');
+            const count = getVisibleWishlistCount();
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
         }
 
         function getStatusColor(status) {
@@ -3220,7 +3133,7 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             if (dateEl) {
                 dateEl.innerText = new Date().toLocaleDateString('en-IN', dateOptions);
             }
-            router('dashboard');
+            router('browse');
             
             autoRefreshInterval = setInterval(() => {
                 loadData();
@@ -3308,7 +3221,6 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             attachEventListeners();
             lucide.createIcons();
             initTheme();
-            LM_NOTIF.initSoundBtn();
 
             // ── SMART SESSION RESTORE ────────────────────────────────────────
             // Behaviour:
@@ -4161,36 +4073,15 @@ self.addEventListener('push', e => {
   const data = e.data.json();
   self.registration.showNotification(data.title || 'LivestockMart', {
     body: data.body || 'New update available',
-    icon: data.icon || 'IMG_20251229_120150.jpg',
-    badge: data.badge || 'IMG_20251229_120150.jpg',
-    vibrate: [120, 60, 120],
+    icon: data.icon || '',
+    badge: data.badge || '',
     data: { url: data.url || '/' }
   });
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    for (const c of list) {
-      if (c.url.includes(self.location.origin) && 'focus' in c) return c.focus();
-    }
-    return clients.openWindow(e.notification.data.url || './');
-  }));
-});
-
-self.addEventListener('sync', e => {
-  if (e.tag === 'lm-background-check') {
-    e.waitUntil(fetch('https://goat-user-alpha.vercel.app/api/livestock').then(r => r.json()).then(items => {
-      const prev = parseInt(self.__prevCount || 0);
-      if (prev && items.length > prev) {
-        self.registration.showNotification('🐑 New Livestock!', {
-          body: `${items.length - prev} new item(s) added to the market!`,
-          icon: 'IMG_20251229_120150.jpg'
-        });
-      }
-      self.__prevCount = items.length;
-    }).catch(() => {}));
-  }
+  e.waitUntil(clients.openWindow(e.notification.data.url));
 });
   `;
 
@@ -4200,7 +4091,6 @@ self.addEventListener('sync', e => {
     navigator.serviceWorker.register(swURL, { scope: './' })
       .then(reg => {
         console.log('[PWA] SW registered:', reg.scope);
-        LM_NOTIF.setSwReg(reg);
         reg.addEventListener('updatefound', () => {
           const w = reg.installing;
           w.addEventListener('statechange', () => {
@@ -4344,7 +4234,7 @@ self.addEventListener('sync', e => {
 <!-- ================= ULTIMATE SPLASH ================= -->
 <div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#065f46);">
     <div style="text-align:center;">
-        <img src="IMG_20251229_120150.jpg" style="width:120px;height:100px;object-fit:contain;animation:bounce 1.5s infinite;">
+        <img src="IMG_20251229_120150.jpg" style="width:180px;height:180px;object-fit:contain;border-radius:50%;animation:bounce 1.5s infinite;">
         <h1 style="margin-top:20px;font-size:20px;font-weight:bold;color:white;">LivestockMart</h1>
     </div>
 </div>
