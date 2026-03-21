@@ -292,8 +292,8 @@
       <div style="display:flex;align-items:center;gap:12px;">
 
         <!-- App icon -->
-        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#10b981,#064e3b);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,0.45);border:1.5px solid rgba(16,185,129,0.4);">
-          <span style="color:white;font-size:26px;font-weight:900;line-height:1;">L</span>
+        <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(16,185,129,0.45);border:1.5px solid rgba(16,185,129,0.4);">
+          <img src="IMG_20251229_120150.jpg" style="width:100%;height:100%;object-fit:cover;display:block;" alt="LivestockMart Logo">
         </div>
 
         <!-- Text -->
@@ -333,82 +333,10 @@
   ✓ App Installed!
 </div>
 
-<!-- ══ PUSH NOTIFICATION PERMISSION BANNER ═══════════════════════════ -->
-<div id="lm-push-banner">
-  <div class="lm-push-inner">
-    <div class="lm-push-icon">🔔</div>
-    <div class="lm-push-text">
-      <strong>Enable Notifications</strong>
-      <span>Get alerts for orders, new livestock & deals — even when app is closed</span>
-    </div>
-    <button class="lm-push-allow" onclick="LM_NOTIF.requestPermission()">Allow</button>
-    <button class="lm-push-deny" onclick="LM_NOTIF.dismissPermissionBanner()">✕</button>
-  </div>
-</div>
-
-<!-- ══ SMART NOTIFICATION CHIP (floats under header) ═════════════════ -->
-<div id="lm-smart-chip" class="lm-smart-notif-chip">
-  <span id="lm-smart-chip-icon">🎯</span>
-  <span id="lm-smart-chip-text"></span>
-</div>
-
 <style>
 @keyframes chipPop   { from{opacity:0;transform:translateX(-50%) scale(.6)} to{opacity:1;transform:translateX(-50%) scale(1)} }
 @keyframes pwaSlideUp{ from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
 @keyframes pwaSlideDown{from{transform:translateY(0);opacity:1} to{transform:translateY(110%);opacity:0}}
-</style>
-
-<style>
-/* ══ SOUND & NOTIFICATION SYSTEM STYLES ══════════════════════════════ */
-/* Push Permission Banner */
-#lm-push-banner {
-  position:fixed;top:0;left:0;right:0;z-index:100000;
-  background:linear-gradient(135deg,#065f46,#047857);
-  border-bottom:1px solid rgba(16,185,129,.4);
-  box-shadow:0 4px 24px rgba(0,0,0,.35);
-  font-family:'Inter',system-ui,sans-serif;
-  transform:translateY(-100%);transition:transform .45s cubic-bezier(.22,.68,0,1.2);
-}
-#lm-push-banner.show{transform:translateY(0);}
-.lm-push-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px;}
-.lm-push-icon{font-size:22px;flex-shrink:0;}
-.lm-push-text{flex:1;min-width:0;}
-.lm-push-text strong{display:block;color:#fff;font-size:13px;font-weight:700;}
-.lm-push-text span{color:rgba(255,255,255,.7);font-size:11px;}
-.lm-push-allow{background:#10b981;color:#fff;border:none;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s;}
-.lm-push-allow:hover{opacity:.88;}
-.lm-push-deny{background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:none;padding:8px 10px;border-radius:10px;font-size:18px;cursor:pointer;transition:background .15s;}
-.lm-push-deny:hover{background:rgba(255,255,255,.22);}
-
-/* Sound toggle button */
-#lm-sound-btn{position:relative;transition:transform .15s;}
-#lm-sound-btn .lm-sound-off{display:none;}
-#lm-sound-btn.muted .lm-sound-on{display:none;}
-#lm-sound-btn.muted .lm-sound-off{display:block;}
-
-/* Admin notification badge - special styling */
-.lm-notif-admin{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(139,92,246,.1));border:1px solid rgba(124,58,237,.3)!important;border-radius:10px;}
-.lm-notif-admin .lm-admin-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.12);padding:1px 5px;border-radius:999px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em;}
-
-/* Smart notification chip */
-.lm-smart-notif-chip{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:99998;
-  background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid rgba(16,185,129,.4);
-  color:#fff;padding:10px 16px;border-radius:16px;font-size:12px;font-weight:600;
-  white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.45);
-  opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:90vw;
-  display:flex;align-items:center;gap:8px;
-}
-.lm-smart-notif-chip.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-/* Notification settings button in header */
-#lm-notif-settings-btn{cursor:pointer;}
-
-/* Sound wave animation */
-@keyframes lmSoundWave{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.6);}}
-.lm-wave span{display:inline-block;width:2px;height:8px;background:#10b981;border-radius:2px;margin:0 1px;animation:lmSoundWave .6s ease-in-out infinite;}
-.lm-wave span:nth-child(2){animation-delay:.1s;}
-.lm-wave span:nth-child(3){animation-delay:.2s;}
-.lm-wave.muted span{animation:none;background:rgba(156,163,175,.4);}
 </style>
 
     
@@ -669,17 +597,6 @@
                 <button onclick="changeLanguage('te')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">తెలుగు</button>
             </div>
         </div>
-
-        <!-- Sound Toggle Button -->
-        <button id="lm-sound-btn" onclick="LM_NOTIF.toggleSound()" title="Toggle sound alerts"
-          class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative" aria-label="Sound toggle">
-          <span class="lm-sound-on">
-            <i data-lucide="volume-2" class="w-5 h-5 text-emerald-500"></i>
-          </span>
-          <span class="lm-sound-off">
-            <i data-lucide="volume-x" class="w-5 h-5 text-gray-400 dark:text-gray-500"></i>
-          </span>
-        </button>
 
         <div class="relative">
             <button id="notification-button" onclick="toggleNotificationMenu()" class="focus:outline-none p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative">
@@ -1288,293 +1205,7 @@ function isSessionStillValid() {
         
         // --- Language & Notifications ---
         let currentLang = localStorage.getItem('lm_lang') || 'en';
-
-/* ══════════════════════════════════════════════════════════════════════
-   LM_NOTIF — Unified Notification Engine
-   • 🔊 Sound alerts (Web Audio API — works offline)
-   • 📱 Push notifications (even when app is closed)
-   • 🎯 Smart notifications (behaviour-driven)
-   • 📊 Admin-triggered notifications (special styling + priority)
-══════════════════════════════════════════════════════════════════════ */
-const LM_NOTIF = (() => {
-
-  /* ── 🔊 SOUND ALERTS ─────────────────────────────────────────── */
-  let _ctx = null;
-  function _getCtx() {
-    if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (_ctx.state === 'suspended') _ctx.resume();
-    return _ctx;
-  }
-  function _tone(freq, type, dur, vol = 0.28, delay = 0) {
-    try {
-      const c = _getCtx();
-      const osc = c.createOscillator(), g = c.createGain();
-      osc.connect(g); g.connect(c.destination);
-      osc.type = type; osc.frequency.value = freq;
-      const t = c.currentTime + delay;
-      g.gain.setValueAtTime(vol, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.start(t); osc.stop(t + dur);
-    } catch(e) {}
-  }
-
-  let _soundOn = localStorage.getItem('lm_sound') !== '0';
-
-  const SOUNDS = {
-    success : () => { _tone(523,'sine',.12,.3); _tone(659,'sine',.2,.3,.12); },
-    error   : () => { _tone(220,'sawtooth',.22,.25); _tone(196,'sawtooth',.28,.25,.16); },
-    info    : () => { _tone(440,'sine',.18,.22); },
-    warning : () => { _tone(440,'triangle',.12,.3); _tone(330,'triangle',.18,.3,.1); },
-    notify  : () => { _tone(523,'triangle',.1,.28); _tone(784,'triangle',.22,.28,.09); },
-    admin   : () => { [523,659,784,880].forEach((f,i)=>_tone(f,'sine',.16,.35,i*.08)); },
-    smart   : () => { _tone(660,'sine',.1,.2); _tone(880,'sine',.15,.2,.1); _tone(660,'sine',.12,.15,.22); },
-    cart    : () => { _tone(440,'sine',.08,.2); _tone(523,'sine',.12,.2,.07); },
-  };
-
-  function playSound(type) {
-    if (!_soundOn) return;
-    try { SOUNDS[type]?.(); } catch(e) {}
-  }
-
-  function toggleSound() {
-    _soundOn = !_soundOn;
-    localStorage.setItem('lm_sound', _soundOn ? '1' : '0');
-    const btn = document.getElementById('lm-sound-btn');
-    if (btn) _soundOn ? btn.classList.remove('muted') : btn.classList.add('muted');
-    if (typeof showToast === 'function')
-      showToast(_soundOn ? '🔊 Sound alerts ON' : '🔇 Sound alerts OFF', 'info', true);
-  }
-
-  function initSoundBtn() {
-    const btn = document.getElementById('lm-sound-btn');
-    if (!btn) return;
-    if (!_soundOn) btn.classList.add('muted');
-  }
-
-  /* ── 📱 PUSH NOTIFICATIONS ───────────────────────────────────── */
-  let _swReg = null;
-
-  function setSwReg(reg) { _swReg = reg; }
-
-  async function requestPermission() {
-    dismissPermissionBanner();
-    if (!('Notification' in window)) {
-      if (typeof showToast === 'function') showToast('Push notifications not supported in this browser', 'warning');
-      return;
-    }
-    try {
-      const result = await Notification.requestPermission();
-      if (result === 'granted') {
-        localStorage.setItem('lm_push_asked', '1');
-        playSound('success');
-        if (typeof showToast === 'function') showToast('🔔 Push notifications enabled!', 'success');
-        // Register background sync if SW supports it
-        if (_swReg && 'sync' in _swReg) {
-          try { await _swReg.sync.register('lm-background-check'); } catch(e) {}
-        }
-      } else {
-        localStorage.setItem('lm_push_asked', '1');
-        if (typeof showToast === 'function') showToast('Notifications blocked — you can enable them in browser settings', 'info');
-      }
-    } catch(e) {
-      console.warn('[LM_NOTIF] Permission error', e);
-    }
-  }
-
-  function showPermissionBanner() {
-    if (localStorage.getItem('lm_push_asked') === '1') return;
-    if (!('Notification' in window)) return;
-    if (Notification.permission !== 'default') return;
-    const banner = document.getElementById('lm-push-banner');
-    if (!banner) return;
-    setTimeout(() => banner.classList.add('show'), 2500);
-  }
-
-  function dismissPermissionBanner() {
-    const banner = document.getElementById('lm-push-banner');
-    if (banner) banner.classList.remove('show');
-  }
-
-  // Show a device-level notification via SW (works when app is minimised)
-  async function showPushNotif(title, body, icon = '🔔', tag = 'lm-notif') {
-    if (Notification.permission !== 'granted') return;
-    if (_swReg) {
-      try {
-        await _swReg.showNotification(title, {
-          body, tag, icon: 'IMG_20251229_120150.jpg',
-          badge: 'IMG_20251229_120150.jpg',
-          vibrate: [120, 60, 120],
-          data: { url: './' }
-        });
-      } catch(e) {
-        // Fallback: regular Notification API
-        new Notification(title, { body, tag });
-      }
-    } else if (Notification.permission === 'granted') {
-      new Notification(title, { body, tag });
-    }
-  }
-
-  /* ── 📊 ADMIN-TRIGGERED NOTIFICATIONS ───────────────────────── */
-  // Admin notifications are fetched from /api/notifications
-  // They get special purple styling + priority sound + device push
-  function handleAdminNotification(notif) {
-    // Mark as admin-type
-    notif.isAdmin = true;
-    playSound('admin');
-    // Device-level push so it works even when minimised
-    showPushNotif(
-      '📢 ' + (notif.title || 'LivestockMart'),
-      notif.message,
-      '🔔',
-      'lm-admin-' + notif.id
-    );
-    showSmartChip('📢', notif.message, 6000);
-    if (typeof showToast === 'function') showToast('📢 ' + notif.message, 'info');
-  }
-
-  /* ── 🎯 SMART NOTIFICATIONS ──────────────────────────────────── */
-  const _smart = {
-    cartTimer    : null,
-    lastBrowse   : {},  // category → count
-    lastVisit    : parseInt(localStorage.getItem('lm_last_visit') || '0'),
-    greetedToday : localStorage.getItem('lm_greeted') === new Date().toDateString(),
-  };
-
-  // Shown as a subtle floating chip below the header
-  function showSmartChip(icon, text, duration = 4000) {
-    const chip = document.getElementById('lm-smart-chip');
-    const iconEl = document.getElementById('lm-smart-chip-icon');
-    const textEl = document.getElementById('lm-smart-chip-text');
-    if (!chip || !iconEl || !textEl) return;
-    iconEl.textContent = icon;
-    textEl.textContent = text;
-    chip.classList.add('show');
-    setTimeout(() => chip.classList.remove('show'), duration);
-  }
-
-  // Called when user adds something to cart — start abandonment timer (20 min)
-  function onCartAdd(itemName) {
-    clearTimeout(_smart.cartTimer);
-    _smart.cartTimer = setTimeout(() => {
-      if (typeof cart !== 'undefined' && cart.length > 0) {
-        playSound('cart');
-        const msg = `You still have ${cart.length} item${cart.length>1?'s':''} in your cart — complete your order!`;
-        showSmartChip('🛒', msg, 7000);
-        showPushNotif('🛒 Cart Reminder', msg, '🛒', 'lm-cart-remind');
-        addSmartNotifToList('Cart Reminder', msg, 'shopping-cart', 'yellow');
-      }
-    }, 20 * 60 * 1000); // 20 minutes
-  }
-
-  // Called when user browses — track category interest
-  function onBrowseCategory(category) {
-    if (!category || category === 'All') return;
-    _smart.lastBrowse[category] = (_smart.lastBrowse[category] || 0) + 1;
-    if (_smart.lastBrowse[category] === 3) {
-      const msg = `Looks like you're interested in ${category}! Check our latest listings.`;
-      playSound('smart');
-      showSmartChip('🎯', msg, 5000);
-      addSmartNotifToList('Personalised Pick', msg, 'target', 'purple');
-      _smart.lastBrowse[category] = 0; // reset counter
-    }
-  }
-
-  // Called on login — check re-engagement & greet
-  function onLogin(userName) {
-    const name = (userName || '').split(' ')[0] || 'there';
-    const now = Date.now();
-    const daysSince = Math.floor((now - _smart.lastVisit) / 86400000);
-
-    // Daily greeting (first open of the day)
-    if (!_smart.greetedToday) {
-      _smart.greetedToday = true;
-      localStorage.setItem('lm_greeted', new Date().toDateString());
-      const hour = new Date().getHours();
-      const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-      setTimeout(() => {
-        playSound('notify');
-        showSmartChip('👋', `${greeting}, ${name}! New livestock added today.`, 5000);
-      }, 3500);
-    }
-
-    // Re-engagement message if away > 3 days
-    if (_smart.lastVisit && daysSince >= 3) {
-      setTimeout(() => {
-        const msg = `Welcome back, ${name}! You've been away ${daysSince} days — here's what's new.`;
-        playSound('smart');
-        showSmartChip('🎉', msg, 6000);
-        showPushNotif('👋 We missed you!', msg, '🎉', 'lm-reengage');
-        addSmartNotifToList('We Missed You!', msg, 'sparkles', 'blue');
-      }, 6000);
-    }
-
-    localStorage.setItem('lm_last_visit', now.toString());
-    showPermissionBanner();
-  }
-
-  // Called when order status changes
-  function onOrderStatusChange(orderId, newStatus) {
-    playSound(newStatus === 'Delivered' ? 'success' : 'notify');
-    const msg = `Order #${String(orderId).slice(-6)} is now ${newStatus}`;
-    showPushNotif('📦 Order Update', msg, '📦', 'lm-order-' + orderId);
-    showSmartChip('📦', msg, 5000);
-  }
-
-  // Add a notification to the in-app list
-  function addSmartNotifToList(title, message, icon, color) {
-    if (typeof notifications !== 'undefined') {
-      notifications.push({
-        id: 'smart_' + Date.now() + Math.random(),
-        title, message, icon: icon || 'bell', color: color || 'green',
-        timestamp: Date.now(), seen: false, isSmart: true
-      });
-      if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
-      if (typeof saveNotifications === 'function') saveNotifications();
-    }
-  }
-
-  // Called when new livestock appears
-  function onNewLivestock(count) {
-    playSound('notify');
-    const msg = `${count} new livestock item${count>1?'s':''} just added to the market!`;
-    showPushNotif('🐑 Market Update', msg, '🐑', 'lm-ls-new');
-    showSmartChip('🐑', msg, 5000);
-  }
-
-  // Called when wishlist items are still available after 24h
-  function checkWishlistNudge(wishlistIds, livestockList) {
-    const available = wishlistIds.filter(id => livestockList.some(l => l._id === id));
-    if (available.length > 0 && Math.random() < 0.3) { // 30% chance per refresh — avoid spamming
-      const msg = `${available.length} wishlist item${available.length>1?'s are':' is'} still available — grab it before it sells!`;
-      playSound('smart');
-      showSmartChip('💚', msg, 6000);
-    }
-  }
-
-  return {
-    playSound,
-    toggleSound,
-    initSoundBtn,
-    setSwReg,
-    requestPermission,
-    showPermissionBanner,
-    dismissPermissionBanner,
-    showPushNotif,
-    handleAdminNotification,
-    showSmartChip,
-    onCartAdd,
-    onBrowseCategory,
-    onLogin,
-    onOrderStatusChange,
-    onNewLivestock,
-    checkWishlistNudge,
-    addSmartNotifToList,
-  };
-})();
-
-// Legacy notifSound shim (keeps old code from breaking)
-const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.resolve(); } };
+        const notifSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
         const translations = {
             en: {
@@ -1684,11 +1315,7 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
         let previousLivestockCount = parseInt(localStorage.getItem('lm_prev_ls_count') || '0');
         let previousOrdersSnapshot = localStorage.getItem('lm_prev_orders_snap') || '[]';
         
-        function showToast(message, type = 'info', noSound = false) {
-            // Play matching sound alert
-            if (!noSound) {
-              try { LM_NOTIF.playSound(type); } catch(e) {}
-            }
+        function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
             const id = 'toast-' + Date.now();
@@ -1758,17 +1385,11 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             } else {
                 list.innerHTML = [...notifications].reverse().map(n => {
                     const seenStyle = n.seen ? 'opacity-60' : 'bg-green-50/50 dark:bg-green-900/20';
-                    const adminClass = n.isAdmin ? 'lm-notif-admin' : '';
-                    const adminBadge = n.isAdmin
-                        ? `<span class="lm-admin-badge">📢 Admin</span>` : '';
-                    const smartBadge = n.isSmart
-                        ? `<span class="lm-admin-badge" style="color:#7c3aed;background:rgba(124,58,237,.12)">🎯 Smart</span>` : '';
                     return `
-                    <div class="flex items-start justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ${seenStyle} ${adminClass}">
+                    <div class="flex items-start justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ${seenStyle}">
                         <div class="flex items-start gap-2 flex-1">
-                            <i data-lucide="${n.icon || 'bell'}" class="w-4 h-4 mt-0.5 text-${n.color || 'green'}-500 flex-shrink-0"></i>
+                            <i data-lucide="${n.icon}" class="w-4 h-4 mt-0.5 text-${n.color}-500 flex-shrink-0"></i>
                             <div>
-                                ${adminBadge}${smartBadge}
                                 <p class="text-xs font-medium text-gray-800 dark:text-gray-200">${n.title}</p>
                                 <p class="text-[11px] text-gray-500 dark:text-gray-400">${n.message}</p>
                             </div>
@@ -1952,7 +1573,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                 updateWishlistBadge(); 
                 updateNotificationBadge(); 
                 showToast('Logged in successfully', 'success');
-                LM_NOTIF.onLogin(currentUser?.name);
                 showApp();
                 resetSessionTimer();
             } catch (err) {
@@ -1988,7 +1608,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                 updateWishlistBadge(); 
                 updateNotificationBadge(); 
                 showToast('Account created & logged in', 'success');
-                LM_NOTIF.onLogin(currentUser?.name);
                 showApp();
                 resetSessionTimer();
             } catch (err) {
@@ -2082,15 +1701,15 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                              }
                          });
                          if(newNotifFound) {
-                             const last = fetchedNotifs[fetchedNotifs.length-1];
-                             LM_NOTIF.handleAdminNotification(last);
+                             notifSound.play().catch(()=>{});
+                             const last = notifications[notifications.length-1];
+                             showToast(last.message, last.color === 'red' ? 'error' : 'info');
                          }
                      }
                 } catch(e) { }
 
                 if (isBaselineInitialized && fetchedLivestock.length > previousLivestockCount) {
                     const newCount = fetchedLivestock.length - previousLivestockCount;
-                    LM_NOTIF.onNewLivestock(newCount);
                     notifications.push({
                         id: 'ls_' + Date.now() + Math.random(),
                         title: 'Market Update',
@@ -2113,7 +1732,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
                         fetchedOrders.forEach(newOrder => {
                             const oldStatus = previousOrderMap[newOrder._id];
                             if (oldStatus && oldStatus !== newOrder.status) {
-                                LM_NOTIF.onOrderStatusChange(newOrder._id, newOrder.status);
                                 notifications.push({
                                     id: 'order_' + newOrder._id + Date.now(),
                                     title: 'Order Status Update',
@@ -2171,10 +1789,6 @@ const notifSound = { play: () => { LM_NOTIF.playSound('notify'); return Promise.
             updateCartBadge();
             updateWishlistBadge(); 
             updateNotificationBadge(); 
-            // Smart: wishlist availability nudge
-            if (wishlist.length > 0 && livestock.length > 0) {
-              LM_NOTIF.checkWishlistNudge(wishlist, livestock);
-            }
         }
 
         function router(viewName) {
@@ -2823,7 +2437,6 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
                 updateCartBadge();
                 saveUserStateDebounced();
                 showToast(`${item.name} added to cart`, 'success');
-                LM_NOTIF.onCartAdd(item.name);
                 const active = document.querySelector('.nav-item.bg-green-600')?.getAttribute('onclick') || '';
                 if (active.includes('dashboard')) renderDashboard();
             }
@@ -3308,7 +2921,6 @@ document.addEventListener('DOMContentLoaded', initOrderFilterDropdown);
             attachEventListeners();
             lucide.createIcons();
             initTheme();
-            LM_NOTIF.initSoundBtn();
 
             // ── SMART SESSION RESTORE ────────────────────────────────────────
             // Behaviour:
@@ -4161,36 +3773,15 @@ self.addEventListener('push', e => {
   const data = e.data.json();
   self.registration.showNotification(data.title || 'LivestockMart', {
     body: data.body || 'New update available',
-    icon: data.icon || 'IMG_20251229_120150.jpg',
-    badge: data.badge || 'IMG_20251229_120150.jpg',
-    vibrate: [120, 60, 120],
+    icon: data.icon || '',
+    badge: data.badge || '',
     data: { url: data.url || '/' }
   });
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    for (const c of list) {
-      if (c.url.includes(self.location.origin) && 'focus' in c) return c.focus();
-    }
-    return clients.openWindow(e.notification.data.url || './');
-  }));
-});
-
-self.addEventListener('sync', e => {
-  if (e.tag === 'lm-background-check') {
-    e.waitUntil(fetch('https://goat-user-alpha.vercel.app/api/livestock').then(r => r.json()).then(items => {
-      const prev = parseInt(self.__prevCount || 0);
-      if (prev && items.length > prev) {
-        self.registration.showNotification('🐑 New Livestock!', {
-          body: `${items.length - prev} new item(s) added to the market!`,
-          icon: 'IMG_20251229_120150.jpg'
-        });
-      }
-      self.__prevCount = items.length;
-    }).catch(() => {}));
-  }
+  e.waitUntil(clients.openWindow(e.notification.data.url));
 });
   `;
 
@@ -4200,7 +3791,6 @@ self.addEventListener('sync', e => {
     navigator.serviceWorker.register(swURL, { scope: './' })
       .then(reg => {
         console.log('[PWA] SW registered:', reg.scope);
-        LM_NOTIF.setSwReg(reg);
         reg.addEventListener('updatefound', () => {
           const w = reg.installing;
           w.addEventListener('statechange', () => {
@@ -4344,7 +3934,7 @@ self.addEventListener('sync', e => {
 <!-- ================= ULTIMATE SPLASH ================= -->
 <div id="splash-screen" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#065f46);">
     <div style="text-align:center;">
-        <img src="IMG_20251229_120150.jpg" style="width:120px;height:100px;object-fit:contain;animation:bounce 1.5s infinite;">
+        <img src="IMG_20251229_120150.jpg" style="width:180px;height:180px;object-fit:contain;border-radius:50%;animation:bounce 1.5s infinite;">
         <h1 style="margin-top:20px;font-size:20px;font-weight:bold;color:white;">LivestockMart</h1>
     </div>
 </div>
